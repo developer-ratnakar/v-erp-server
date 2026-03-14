@@ -1,19 +1,21 @@
 import authRepository from "../repositories/auth.repository.js";
 import jwt from "jsonwebtoken";
-import bcrypt from 'bcrypt'
+import bcrypt from "bcrypt";
+import ApiError from "../../../errors/ApiError.js";
+import User from "../models/user.model.js";
 
 class AuthService {
   async login(dto) {
     const user = await authRepository.findUserByEmail(dto.email);
 
     if (!user) {
-      throw new Error("Invalid Credentials");
+      throw new ApiError(401, "Invalid Credentials");
     }
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!passwordMatch) {
-      throw new Error("Invalid Credentials");
+      throw new ApiError(401, "Invalid Credentials");
     }
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
@@ -26,7 +28,7 @@ class AuthService {
       user_id: user.id,
       token,
       expires_at: new Date(Date.now() + 3600000), // 1 hour from now
-    }
+    };
 
     await authRepository.createLoginSession(sessionData);
 
@@ -34,16 +36,20 @@ class AuthService {
   }
 
   async register(dto) {
-    const user = await authRepository.findUserByEmail(dto.email);
+    const existingUser = await authRepository.findUserByEmail(dto.email);
 
-    if (user) {
-      throw new Error("User already exists");
+    if (existingUser) {
+      throw new ApiError(409, "User already exists");
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    dto.password = hashedPassword;
+    
+    const newUser = new User({
+      ...dto,
+      password: hashedPassword
+    });
 
-    return await authRepository.createUser(dto);
+    return await authRepository.createUser(newUser);
   }
 }
 

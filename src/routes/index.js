@@ -1,8 +1,10 @@
-import express from "express";
-import authRoute from "../modules/auth/routes/auth.route.js";
+import { Router } from "express";
+import authRouter from "../modules/auth/routes/auth.route.js";
+import rbacRouter from "../modules/rbac/routes/rbac.route.js";
 
-const router = express.Router();
+const indexRouter = Router();
 
-router.use("/auth", authRoute);
+indexRouter.use("/auth", authRouter);
+indexRouter.use("/rbac", rbacRouter);
 
-export default router
+export default indexRouter;

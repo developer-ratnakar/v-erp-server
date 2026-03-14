@@ -3,7 +3,7 @@ import { LoginResponseDTO } from "../dto/login-response.dto.js";
 import { CreateUserDTO } from "../dto/create-user.dto.js";
 import authService from "../services/auth.service.js";
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const dto = new LoginRequestDTO(req.body);
 
@@ -13,14 +13,11 @@ export const login = async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
-export const createUser = async (req, res) => {
+export const createUser = async (req, res, next) => {
   try {
     const dto = new CreateUserDTO(req.body);
 
@@ -30,9 +27,6 @@ export const createUser = async (req, res) => {
 
     res.status(201).json(response);
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };

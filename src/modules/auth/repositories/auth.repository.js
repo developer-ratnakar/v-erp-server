@@ -1,4 +1,9 @@
 import { supabaseAdmin } from "../../../config/supabase.js";
+import User from "../models/user.model.js";
+import LoginSession from "../models/login-session.model.js";
+import Role from "../../rbac/models/role.model.js";
+import Permission from "../../rbac/models/permission.model.js";
+import UserRoleMapping from "../../rbac/models/user-role-mapping.model.js";
 
 class AuthRepository {
   async findUserByEmail(email) {
@@ -9,14 +14,13 @@ class AuthRepository {
       .single();
 
     if (error) {
-      // Don't throw an error if the user is simply not found
       if (error.code === 'PGRST116') {
         return null;
       }
       throw new Error(error.message);
     }
 
-    return data;
+    return data ? new User(data) : null;
   }
 
   async findUserById(userId) {
@@ -33,11 +37,10 @@ class AuthRepository {
       throw new Error(error.message);
     }
 
-    return data;
+    return data ? new User(data) : null;
   }
 
   async createUser(userData) {
-    // Step 1: Insert the user and select only the ID.
     const { data: insertData, error: insertError } = await supabaseAdmin
       .from("users")
       .insert(userData)
@@ -53,7 +56,6 @@ class AuthRepository {
         throw new Error("Failed to create user or retrieve user ID.");
     }
 
-    // Step 2: Fetch the full user object using the returned ID.
     const newUser = await this.findUserById(insertData.id);
 
     if (!newUser) {
@@ -75,7 +77,7 @@ class AuthRepository {
 
     if (error) throw new Error(error.message);
 
-    return data;
+    return new UserRoleMapping(data);
   }
 
   async getUserRoles(userId) {
@@ -94,7 +96,7 @@ class AuthRepository {
 
     if (error) throw new Error(error.message);
 
-    return data;
+    return data ? data.map(item => new Role(item.roles)) : [];
   }
 
   async getRolePermissions(roleId) {
@@ -105,7 +107,7 @@ class AuthRepository {
 
     if (error) throw new Error(error.message);
 
-    return data;
+    return data ? data.map(item => new Permission(item.permissions)) : [];
   }
 
   async createLoginSession(sessionData) {
@@ -117,7 +119,7 @@ class AuthRepository {
 
     if (error) throw new Error(error.message);
 
-    return data;
+    return new LoginSession(data);
   }
 }
 
