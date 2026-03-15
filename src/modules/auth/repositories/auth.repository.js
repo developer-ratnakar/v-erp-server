@@ -43,7 +43,7 @@ class AuthRepository {
   async createUser(userData) {
     const { data: insertData, error: insertError } = await supabaseAdmin
       .from("users")
-      .insert(userData)
+      .insert(userData.toPersistence())
       .select("id")
       .single();
 
