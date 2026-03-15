@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { requireAuth } from "../../../middlewares/auth.middleware.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import {
   assignPermissionToRole,
@@ -24,6 +25,7 @@ import {
 } from "../validation/rbac.validation.js";
 
 const rbacRouter = Router();
+rbacRouter.use(requireAuth);
 
 rbacRouter.post("/roles", validate(createRoleSchema), createRole);
 rbacRouter.get("/roles", getAllRoles);

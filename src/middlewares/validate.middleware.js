@@ -27,6 +27,14 @@ export const validate = (schema) => (req, res, next) => {
       continue;
     }
 
+    if (key === "query") {
+      Object.keys(req.query).forEach((queryKey) => {
+        delete req.query[queryKey];
+      });
+      Object.assign(req.query, result.data);
+      continue;
+    }
+
     req[key] = result.data;
   }
 
