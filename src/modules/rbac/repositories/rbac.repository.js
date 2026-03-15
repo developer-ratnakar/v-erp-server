@@ -1,8 +1,8 @@
-import { supabaseAdmin } from "../../../config/supabase";
-import Role from "../models/role.model";
-import Permission from "../models/permission.model";
-import RolePermissionMapping from "../models/role-permission-mapping.model";
-import UserRoleMapping from "../models/user-role-mapping.model";
+import { supabaseAdmin } from "../../../config/supabase.js";
+import Role from "../models/role.model.js";
+import Permission from "../models/permission.model.js";
+import RolePermissionMapping from "../models/role-permission-mapping.model.js";
+import UserRoleMapping from "../models/user-role-mapping.model.js";
 
 class RBACRepository {
   async createRole(roleData) {
@@ -22,9 +22,25 @@ class RBACRepository {
       .from("roles")
       .select("*")
       .eq("role_name", roleName)
-      .single();
+      .maybeSingle();
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? new Role(data) : null;
+  }
+
+  async findRoleById(roleId) {
+    const { data, error } = await supabaseAdmin
+      .from("roles")
+      .select("*")
+      .eq("id", roleId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
 
     return data ? new Role(data) : null;
   }
@@ -41,6 +57,35 @@ class RBACRepository {
     return new Permission(data);
   }
 
+  async findPermissionByTypeAndModule(permissionType, moduleId) {
+    const { data, error } = await supabaseAdmin
+      .from("permissions")
+      .select("*")
+      .eq("permission_type", permissionType)
+      .eq("module_id", moduleId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? new Permission(data) : null;
+  }
+
+  async findPermissionById(permissionId) {
+    const { data, error } = await supabaseAdmin
+      .from("permissions")
+      .select("*")
+      .eq("id", permissionId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? new Permission(data) : null;
+  }
+
   async assignPermissionToRole(roleId, permissionId) {
     const { data, error } = await supabaseAdmin
       .from("role_permission_mapping")
@@ -51,6 +96,21 @@ class RBACRepository {
     if (error) throw new Error(error.message);
 
     return new RolePermissionMapping(data);
+  }
+
+  async findRolePermissionMapping(roleId, permissionId) {
+    const { data, error } = await supabaseAdmin
+      .from("role_permission_mapping")
+      .select("*")
+      .eq("role_id", roleId)
+      .eq("permission_id", permissionId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? new RolePermissionMapping(data) : null;
   }
 
   async assignRoleToUser(userId, roleId) {
@@ -68,6 +128,21 @@ class RBACRepository {
     return new UserRoleMapping(data);
   }
 
+  async findUserRoleMapping(userId, roleId) {
+    const { data, error } = await supabaseAdmin
+      .from("user_role_mapping")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("role_id", roleId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? new UserRoleMapping(data) : null;
+  }
+
   async getUserRoles(userId) {
     const { data, error } = await supabaseAdmin
       .from("user_role_mapping")
@@ -78,7 +153,7 @@ class RBACRepository {
         id,
         role_name
         )
-        `
+        `,
       )
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
@@ -92,6 +167,28 @@ class RBACRepository {
       .eq("role_id", roleId);
     if (error) throw new Error(error.message);
     return data ? data.map((item) => new Permission(item.permissions)) : [];
+  }
+
+  async getAllRoles() {
+    const { data, error } = await supabaseAdmin
+      .from("roles")
+      .select("*")
+      .order("role_name", { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    return data ? data.map((item) => new Role(item)) : [];
+  }
+
+  async getAllPermissions() {
+    const { data, error } = await supabaseAdmin
+      .from("permissions")
+      .select("*")
+      .order("permission_type", { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    return data ? data.map((item) => new Permission(item)) : [];
   }
 }
 
