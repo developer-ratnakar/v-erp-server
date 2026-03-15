@@ -1,6 +1,8 @@
 import RBACRepository from "../repositories/rbac.repository.js";
 import ApiError from "../../../errors/ApiError.js";
 
+const DEVELOPER_ROLE = "developer";
+
 class RBACService {
   async createRole(dto) {
     const existingRole = await RBACRepository.findRoleByName(dto.role_name);
@@ -101,6 +103,12 @@ class RBACService {
   }
 
   async checkUserPermission(userId, permission) {
+    const roles = await this.getUserRoles(userId);
+
+    if (roles.some((role) => role.roleName === DEVELOPER_ROLE)) {
+      return true;
+    }
+
     const permissions = await this.getUserPermissions(userId);
     return permissions.some((perm) => perm.permissionType === permission);
   }
