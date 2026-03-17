@@ -121,6 +121,17 @@ class AuthRepository {
 
     return new LoginSession(data);
   }
+
+  async getAllUsers() {
+    const { data, error } = await supabaseAdmin
+      .from("users")
+      .select("id, email, first_name, last_name, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    return data ? data.map(u => new User(u)) : [];
+  }
 }
 
 export default new AuthRepository();
