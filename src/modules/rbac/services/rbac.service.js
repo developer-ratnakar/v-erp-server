@@ -115,23 +115,26 @@ class RBACService {
   }
 
   async bootstrapAdmin(email) {
-    const modules = ['academic', 'students', 'operations', 'hr', 'exams', 'clc', 'dashboard'];
+    const modules = ['academic', 'students', 'operations', 'hr', 'exams', 'clc', 'dashboard', 'settings', 'staff', 'attendance', 'timetable', 'exam-results'];
+    const permissionTypes = ['read', 'write', 'delete'];
     
     // 1. Ensure Admin Role
     let role = await RBACRepository.findRoleByName('admin');
     if (!role) {
-      role = await RBACRepository.createRole({ role_name: 'admin' });
+      role = await RBACRepository.createRole({ role_name: 'admin', description: 'System Administrator' });
     }
 
     // 2. Sync Permissions
     const permissions = [];
     for (const mod of modules) {
-      const type = `${mod}.read`;
-      let perm = await RBACRepository.findPermissionByTypeAndModule(type, mod);
-      if (!perm) {
-        perm = await RBACRepository.createPermission({ permission_type: type, module_id: mod });
+      for (const typeSuffix of permissionTypes) {
+        const type = `${mod}.${typeSuffix}`;
+        let perm = await RBACRepository.findPermissionByTypeAndModule(type, mod);
+        if (!perm) {
+          perm = await RBACRepository.createPermission({ permission_type: type, module_id: mod });
+        }
+        permissions.push(perm);
       }
-      permissions.push(perm);
     }
 
     // 3. Assign Permissions to Role
@@ -140,6 +143,7 @@ class RBACService {
       permission_id: p.id
     }));
 
+    // Batch assignment if possible, or loop (mapping handles individual inserts)
     for (const m of mappings) {
       try {
         await RBACRepository.assignPermissionToRole(m.role_id, m.permission_id);
@@ -151,16 +155,22 @@ class RBACService {
     // 4. Assign Role to User
     const user = await authRepository.findUserByEmail(email);
     if (!user) {
-      throw new ApiError(404, "User not found");
+      throw new ApiError(404, "User not found. Please register on the production site first.");
     }
 
     try {
       await RBACRepository.assignRoleToUser(user.id, role.id);
     } catch (e) {
-      // Ignore if already assigned
+      // Role might already be assigned
     }
 
-    return { message: "Bootstrap successful", user: email, role: "admin" };
+    return { 
+      message: "Bootstrap successful", 
+      user: email, 
+      role: "admin",
+      permissionsCount: permissions.length,
+      modules: modules
+    };
   }
 }
 
