@@ -17,6 +17,15 @@ export const login = async (req, res, next) => {
   }
 };
 
+export const getAllUsers = async (_req, res, next) => {
+  try {
+    const users = await authService.getAllUsers();
+    res.status(200).json(users);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const createUser = async (req, res, next) => {
   try {
     const dto = new CreateUserDTO(req.body);
