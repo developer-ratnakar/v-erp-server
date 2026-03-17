@@ -1,4 +1,5 @@
 import rbacService from "../services/rbac.service.js";
+import ApiError from "../../../errors/ApiError.js";
 
 export const createRole = async (req, res, next) => {
   try {
