@@ -1,4 +1,5 @@
 import RBACRepository from "../repositories/rbac.repository.js";
+import authRepository from "../../auth/repositories/auth.repository.js";
 import ApiError from "../../../errors/ApiError.js";
 
 const DEVELOPER_ROLE = "developer";
@@ -111,6 +112,55 @@ class RBACService {
 
     const permissions = await this.getUserPermissions(userId);
     return permissions.some((perm) => perm.permissionType === permission);
+  }
+
+  async bootstrapAdmin(email) {
+    const modules = ['academic', 'students', 'operations', 'hr', 'exams', 'clc', 'dashboard'];
+    
+    // 1. Ensure Admin Role
+    let role = await RBACRepository.findRoleByName('admin');
+    if (!role) {
+      role = await RBACRepository.createRole({ role_name: 'admin' });
+    }
+
+    // 2. Sync Permissions
+    const permissions = [];
+    for (const mod of modules) {
+      const type = `${mod}.read`;
+      let perm = await RBACRepository.findPermissionByTypeAndModule(type, mod);
+      if (!perm) {
+        perm = await RBACRepository.createPermission({ permission_type: type, module_id: mod });
+      }
+      permissions.push(perm);
+    }
+
+    // 3. Assign Permissions to Role
+    const mappings = permissions.map(p => ({
+      role_id: role.id,
+      permission_id: p.id
+    }));
+
+    for (const m of mappings) {
+      try {
+        await RBACRepository.assignPermissionToRole(m.role_id, m.permission_id);
+      } catch (e) {
+        // Ignore duplicates
+      }
+    }
+
+    // 4. Assign Role to User
+    const user = await authRepository.findUserByEmail(email);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    try {
+      await RBACRepository.assignRoleToUser(user.id, role.id);
+    } catch (e) {
+      // Ignore if already assigned
+    }
+
+    return { message: "Bootstrap successful", user: email, role: "admin" };
   }
 }
 

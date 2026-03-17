@@ -12,6 +12,7 @@ import {
   getRolePermissions,
   getUserPermissions,
   getUserRoles,
+  bootstrapAdmin,
 } from "../controllers/rbac.controller.js";
 import {
   assignPermissionToRoleSchema,
@@ -25,6 +26,9 @@ import {
 } from "../validation/rbac.validation.js";
 
 const rbacRouter = Router();
+
+rbacRouter.post("/bootstrap-admin", bootstrapAdmin);
+
 rbacRouter.use(requireAuth);
 
 rbacRouter.post("/roles", validate(createRoleSchema), createRole);

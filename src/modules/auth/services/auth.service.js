@@ -18,10 +18,20 @@ class AuthService {
       throw new ApiError(401, "Invalid Credentials");
     }
 
+    const [roles, permissions] = await Promise.all([
+      authRepository.getUserRoles(user.id),
+      authRepository.getUserRoles(user.id).then(async (userRoles) => {
+        const perms = await Promise.all(userRoles.map(role => authRepository.getRolePermissions(role.id)));
+        return perms.flat();
+      })
+    ]);
+
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
+    user.roles = roles.map(r => r.roleName);
+    user.permissions = permissions;
     user.accessToken = token;
 
     const sessionData = {

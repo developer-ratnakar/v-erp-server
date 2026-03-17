@@ -8,9 +8,11 @@ import hrRouter from "../modules/hr/routes/hr.route.js";
 import operationsRouter from "../modules/operations/routes/operations.route.js";
 import rbacRouter from "../modules/rbac/routes/rbac.route.js";
 import studentRouter from "../modules/students/routes/student.route.js";
+import dashboardRouter from "../modules/dashboard/routes/dashboard.route.js";
 
 const indexRouter = Router();
 
+indexRouter.use("/dashboard", dashboardRouter);
 indexRouter.use("/academic", academicRouter);
 indexRouter.use("/attendance", attendanceRouter);
 indexRouter.use("/auth", authRouter);

@@ -100,3 +100,16 @@ export const checkUserPermission = async (req, res, next) => {
     next(err);
   }
 };
+export const bootstrapAdmin = async (req, res, next) => {
+  try {
+    const { email, secret } = req.body;
+    // Basic protection using the dev JWT secret
+    if (secret !== process.env.JWT_SECRET) {
+      throw new ApiError(403, "Invalid bootstrap secret");
+    }
+    const result = await rbacService.bootstrapAdmin(email);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
