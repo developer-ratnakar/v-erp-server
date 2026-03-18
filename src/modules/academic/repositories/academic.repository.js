@@ -154,6 +154,83 @@ class AcademicRepository {
     if (error) throw new Error(error.message);
   }
 
+  async getDepartmentUsage(id) {
+    const tableMappings = [
+      { table: "academic_batches", label: "Batches" },
+      { table: "students", label: "Students" },
+      { table: "hr_staff", label: "Staff Members" },
+      { table: "operations_subjects", label: "Subjects" },
+      { table: "operations_timetables", label: "Timetables" }
+    ];
+
+    const usage = {};
+    let totalCount = 0;
+
+    await Promise.all(tableMappings.map(async ({ table, label }) => {
+      const { count, error } = await supabaseAdmin
+        .from(table)
+        .select("*", { count: "exact", head: true })
+        .eq("department_id", id);
+      
+      if (!error && count > 0) {
+        usage[label] = count;
+        totalCount += count;
+      }
+    }));
+
+    return { usage, totalCount };
+  }
+
+  async getProgramUsage(id) {
+    const tableMappings = [
+      { table: "academic_departments", label: "Departments" },
+      { table: "academic_batches", label: "Batches" },
+      { table: "students", label: "Students" },
+      { table: "operations_subjects", label: "Subjects" },
+      { table: "operations_timetables", label: "Timetables" }
+    ];
+
+    const usage = {};
+    let totalCount = 0;
+
+    await Promise.all(tableMappings.map(async ({ table, label }) => {
+      const { count, error } = await supabaseAdmin
+        .from(table)
+        .select("*", { count: "exact", head: true })
+        .eq("program_id", id);
+      
+      if (!error && count > 0) {
+        usage[label] = count;
+        totalCount += count;
+      }
+    }));
+
+    return { usage, totalCount };
+  }
+
+  async getBatchUsage(id) {
+    const tableMappings = [
+      { table: "students", label: "Students" }
+    ];
+
+    const usage = {};
+    let totalCount = 0;
+
+    await Promise.all(tableMappings.map(async ({ table, label }) => {
+      const { count, error } = await supabaseAdmin
+        .from(table)
+        .select("*", { count: "exact", head: true })
+        .eq("batch_id", id);
+      
+      if (!error && count > 0) {
+        usage[label] = count;
+        totalCount += count;
+      }
+    }));
+
+    return { usage, totalCount };
+  }
+
   async createBatch(batchData) {
     const { data, error } = await supabaseAdmin
       .from("academic_batches")

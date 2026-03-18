@@ -2,9 +2,18 @@ import ApiError from "../../../errors/ApiError.js";
 import academicRepository from "../repositories/academic.repository.js";
 
 class AcademicService {
-  handleDeleteConflict(error, entityName) {
+  handleDeleteConflict(error, entityName, usageDetails = null) {
     if (error.message?.includes("violates foreign key constraint") || error.message?.includes("update or delete on table")) {
-      throw new ApiError(409, `Cannot delete ${entityName} because it is in use`);
+      let message = `Cannot delete ${entityName} because it is in use`;
+      
+      if (usageDetails && usageDetails.totalCount > 0) {
+        const details = Object.entries(usageDetails.usage)
+          .map(([label, count]) => `${count} ${label}`)
+          .join(", ");
+        message = `${message}: ${details}`;
+      }
+      
+      throw new ApiError(409, message, usageDetails);
     }
 
     throw error;
@@ -51,7 +60,8 @@ class AcademicService {
     try {
       await academicRepository.deleteProgram(id);
     } catch (error) {
-      this.handleDeleteConflict(error, "program");
+      const usageDetails = await academicRepository.getProgramUsage(id);
+      this.handleDeleteConflict(error, "program", usageDetails);
     }
   }
 
@@ -111,7 +121,8 @@ class AcademicService {
     try {
       await academicRepository.deleteDepartment(id);
     } catch (error) {
-      this.handleDeleteConflict(error, "department");
+      const usageDetails = await academicRepository.getDepartmentUsage(id);
+      this.handleDeleteConflict(error, "department", usageDetails);
     }
   }
 
@@ -157,7 +168,8 @@ class AcademicService {
     try {
       await academicRepository.deleteBatch(id);
     } catch (error) {
-      this.handleDeleteConflict(error, "batch");
+      const usageDetails = await academicRepository.getBatchUsage(id);
+      this.handleDeleteConflict(error, "batch", usageDetails);
     }
   }
 

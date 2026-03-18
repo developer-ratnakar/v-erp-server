@@ -3,9 +3,9 @@ class Semester {
     this.id = id;
     this.code = code;
     this.name = name;
-    this.isActive = is_active;
-    this.createdAt = created_at;
-    this.updatedAt = updated_at;
+    this.is_active = is_active;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
   }
 }
 

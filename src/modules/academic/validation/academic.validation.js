@@ -4,8 +4,10 @@ const idParam = z.coerce.number().int().positive();
 const batchBodySchema = z.object({
   name: z.string().trim().min(2).max(50),
   program_id: z.coerce.number().int().positive(),
+  department_id: z.coerce.number().int().positive(),
   start_year: z.coerce.number().int().min(1900).max(3000),
   end_year: z.coerce.number().int().min(1900).max(3000),
+  current_semester: z.coerce.number().int().min(1).max(20).optional(),
   is_active: z.boolean().optional(),
 });
 const sessionBodySchema = z.object({
@@ -20,6 +22,8 @@ export const createProgramSchema = {
   body: z.object({
     code: z.string().trim().min(2).max(20),
     name: z.string().trim().min(2).max(100),
+    duration_years: z.coerce.number().int().min(1).max(10).optional(),
+    description: z.string().trim().optional(),
     is_active: z.boolean().optional(),
   }),
 };
@@ -29,6 +33,7 @@ export const createDepartmentSchema = {
     code: z.string().trim().min(2).max(20),
     name: z.string().trim().min(2).max(100),
     program_id: z.coerce.number().int().positive(),
+    description: z.string().trim().optional(),
     is_active: z.boolean().optional(),
   }),
 };

@@ -1,13 +1,15 @@
 class Batch {
-  constructor({ id, name, program_id, start_year, end_year, is_active, created_at, updated_at }) {
+  constructor({ id, name, program_id, department_id, start_year, end_year, current_semester, is_active, created_at, updated_at }) {
     this.id = id;
     this.name = name;
-    this.programId = program_id;
-    this.startYear = start_year;
-    this.endYear = end_year;
-    this.isActive = is_active;
-    this.createdAt = created_at;
-    this.updatedAt = updated_at;
+    this.program_id = program_id;
+    this.department_id = department_id;
+    this.start_year = start_year;
+    this.end_year = end_year;
+    this.current_semester = current_semester;
+    this.is_active = is_active;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
   }
 }
 
