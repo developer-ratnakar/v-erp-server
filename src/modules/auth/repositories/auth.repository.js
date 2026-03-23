@@ -53,13 +53,13 @@ class AuthRepository {
     }
 
     if (!insertData || !insertData.id) {
-        throw new Error("Failed to create user or retrieve user ID.");
+      throw new Error("Failed to create user or retrieve user ID.");
     }
 
     const newUser = await this.findUserById(insertData.id);
 
     if (!newUser) {
-        throw new Error("Failed to retrieve newly created user.");
+      throw new Error("Failed to retrieve newly created user.");
     }
 
     return newUser;
@@ -87,8 +87,8 @@ class AuthRepository {
         `
         role_id,
         roles (
-        id,
-        role_name
+          id,
+          role_name
         )
         `,
       )
@@ -96,7 +96,7 @@ class AuthRepository {
 
     if (error) throw new Error(error.message);
 
-    return data ? data.map(item => new Role(item.roles)) : [];
+    return data ? data.map((item) => new Role(item.roles)) : [];
   }
 
   async getRolePermissions(roleId) {
@@ -107,13 +107,48 @@ class AuthRepository {
 
     if (error) throw new Error(error.message);
 
-    return data ? data.map(item => new Permission(item.permissions)) : [];
+    return data ? data.map((item) => new Permission(item.permissions)) : [];
   }
 
   async createLoginSession(sessionData) {
     const { data, error } = await supabaseAdmin
       .from("login_session")
       .insert(sessionData)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    return new LoginSession(data);
+  }
+
+  // Find a session by its refresh token value
+  async findSessionByRefreshToken(refreshToken) {
+    const { data, error } = await supabaseAdmin
+      .from("login_session")
+      .select("*")
+      .eq("refresh_token", refreshToken)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      throw new Error(error.message);
+    }
+
+    return data ? new LoginSession(data) : null;
+  }
+
+  // Rotate: replace refresh_token and extend expires_at in the existing session row
+  async updateSessionRefreshToken(sessionId, newRefreshToken, newExpiresAt) {
+    const { data, error } = await supabaseAdmin
+      .from("login_session")
+      .update({
+        refresh_token: newRefreshToken,
+        expires_at: newExpiresAt,
+      })
+      .eq("id", sessionId)
       .select()
       .single();
 
@@ -130,7 +165,7 @@ class AuthRepository {
 
     if (error) throw new Error(error.message);
 
-    return data ? data.map(u => new User(u)) : [];
+    return data ? data.map((u) => new User(u)) : [];
   }
 }
 

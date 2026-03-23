@@ -39,3 +39,19 @@ export const createUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export const refreshToken = async (req, res, next) => {
+  try {
+    const { refreshToken: token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "refreshToken is required" });
+    }
+
+    const tokens = await authService.refreshToken(token);
+
+    res.status(200).json(tokens);
+  } catch (error) {
+    next(error);
+  }
+};

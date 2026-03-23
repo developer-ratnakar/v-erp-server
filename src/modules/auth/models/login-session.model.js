@@ -1,8 +1,9 @@
 class LoginSession {
-  constructor({ id, user_id, token, expires_at, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by }) {
+  constructor({ id, user_id, token, refresh_token, expires_at, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by }) {
     this.id = id;
     this.userId = user_id;
     this.token = token;
+    this.refreshToken = refresh_token;
     this.expiresAt = expires_at;
     this.createdAt = created_at;
     this.createdBy = created_by;
