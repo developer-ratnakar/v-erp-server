@@ -3,9 +3,12 @@ import { getPagination } from "../../../utils/pagination.js";
 
 export const createStudent = async (req, res, next) => {
   try {
+    console.log("Creating student with body:", req.body);
     const student = await studentService.createStudent(req.body);
+    console.log("Student created successfully:", student.id);
     res.status(201).json(student);
   } catch (error) {
+    console.error("Error creating student:", error);
     next(error);
   }
 };
@@ -13,6 +16,8 @@ export const createStudent = async (req, res, next) => {
 export const getAllStudents = async (_req, res, next) => {
   try {
     const pagination = getPagination(_req.query);
+    pagination.search = _req.query.search;
+    pagination.department_id = _req.query.department_id;
     const students = await studentService.getAllStudents(pagination);
     res.status(200).json({
       data: students.data,
@@ -56,9 +61,12 @@ export const deleteStudent = async (req, res, next) => {
 
 export const saveStudentParent = async (req, res, next) => {
   try {
+    console.log(`Saving parent for student ${req.params.studentId}:`, req.body);
     const parent = await studentService.saveStudentParent(req.params.studentId, req.body);
+    console.log("Parent saved successfully");
     res.status(200).json(parent);
   } catch (error) {
+    console.error("Error saving parent:", error);
     next(error);
   }
 };
@@ -83,9 +91,12 @@ export const deleteStudentParent = async (req, res, next) => {
 
 export const createStudentAddress = async (req, res, next) => {
   try {
+    console.log(`Creating address for student ${req.params.studentId}:`, req.body);
     const address = await studentService.createStudentAddress(req.params.studentId, req.body);
+    console.log("Address created successfully");
     res.status(201).json(address);
   } catch (error) {
+    console.error("Error creating address:", error);
     next(error);
   }
 };

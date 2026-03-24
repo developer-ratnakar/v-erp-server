@@ -18,13 +18,23 @@ class StudentRepository {
     return new Student(data);
   }
 
-  async getAllStudents() {
-    const { from, to } = arguments[0] ?? { from: 0, to: 9 };
-    const { data, error, count } = await supabaseAdmin
+  async getAllStudents(params) {
+    const { from, to, search, department_id } = params || { from: 0, to: 9 };
+    let query = supabaseAdmin
       .from("students")
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, to);
+
+    if (search) {
+      query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,registration_number.ilike.%${search}%,email.ilike.%${search}%`);
+    }
+
+    if (department_id) {
+      query = query.eq("department_id", department_id);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) throw new Error(error.message);
 

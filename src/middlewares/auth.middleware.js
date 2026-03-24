@@ -33,7 +33,13 @@ export const requireAuth = async (req, _res, next) => {
       throw new ApiError(401, "Invalid or expired token");
     }
 
-    const user = await authRepository.findUserById(payload.userId);
+    const userId = payload.userId || payload.id;
+    
+    if (!userId) {
+      throw new ApiError(401, "Invalid token payload format");
+    }
+
+    const user = await authRepository.findUserById(userId);
 
     if (!user) {
       throw new ApiError(401, "User not found");

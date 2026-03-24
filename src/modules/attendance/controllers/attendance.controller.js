@@ -13,6 +13,14 @@ export const createAttendance = async (req, res, next) => {
 export const getAllAttendance = async (_req, res, next) => {
   try {
     const pagination = getPagination(_req.query);
+    pagination.student_id = _req.query.student_id;
+    pagination.subject_id = _req.query.subject_id;
+    pagination.month = _req.query.month;
+    pagination.program_id = _req.query.program_id;
+    pagination.department_id = _req.query.department_id;
+    pagination.batch_id = _req.query.batch_id;
+    pagination.semester_id = _req.query.semester_id;
+    
     const attendance = await attendanceService.getAllAttendance(pagination);
     res.status(200).json({
       data: attendance.data,

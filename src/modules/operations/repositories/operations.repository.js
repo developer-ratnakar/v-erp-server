@@ -16,13 +16,27 @@ class OperationsRepository {
     return new Subject(data);
   }
 
-  async getAllSubjects() {
-    const { from, to } = arguments[0] ?? { from: 0, to: 9 };
-    const { data, error, count } = await supabaseAdmin
+  async getAllSubjects(params) {
+    const { from, to, search, department_id, program_id } = params || { from: 0, to: 9 };
+    let query = supabaseAdmin
       .from("operations_subjects")
       .select("*", { count: "exact" })
       .order("name", { ascending: true })
       .range(from, to);
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,code.ilike.%${search}%`);
+    }
+
+    if (department_id) {
+      query = query.eq("department_id", department_id);
+    }
+
+    if (program_id) {
+      query = query.eq("program_id", program_id);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) throw new Error(error.message);
 
@@ -90,13 +104,24 @@ class OperationsRepository {
     return new Timetable(data);
   }
 
-  async getAllTimetables() {
-    const { from, to } = arguments[0] ?? { from: 0, to: 9 };
-    const { data, error, count } = await supabaseAdmin
+  async getAllTimetables(params) {
+    const { from, to, search, program_id, department_id, batch_id, semester_id } = params || { from: 0, to: 9 };
+    let query = supabaseAdmin
       .from("operations_timetables")
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, to);
+
+    if (search) {
+      query = query.ilike("name", `%${search}%`);
+    }
+
+    if (program_id) query = query.eq("program_id", program_id);
+    if (department_id) query = query.eq("department_id", department_id);
+    if (batch_id) query = query.eq("batch_id", batch_id);
+    if (semester_id) query = query.eq("semester_id", semester_id);
+
+    const { data, error, count } = await query;
 
     if (error) throw new Error(error.message);
 

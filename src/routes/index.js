@@ -9,6 +9,7 @@ import operationsRouter from "../modules/operations/routes/operations.route.js";
 import rbacRouter from "../modules/rbac/routes/rbac.route.js";
 import studentRouter from "../modules/students/routes/student.route.js";
 import dashboardRouter from "../modules/dashboard/routes/dashboard.route.js";
+import uploadRouter from "../modules/upload/routes/upload.route.js";
 
 const indexRouter = Router();
 
@@ -22,5 +23,6 @@ indexRouter.use("/hr", hrRouter);
 indexRouter.use("/operations", operationsRouter);
 indexRouter.use("/rbac", rbacRouter);
 indexRouter.use("/students", studentRouter);
+indexRouter.use("/upload", uploadRouter);
 
 export default indexRouter;

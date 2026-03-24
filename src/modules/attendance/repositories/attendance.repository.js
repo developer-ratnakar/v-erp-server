@@ -14,14 +14,24 @@ class AttendanceRepository {
     return new Attendance(data);
   }
 
-  async getAllAttendance() {
-    const { from, to } = arguments[0] ?? { from: 0, to: 9 };
-    const { data, error, count } = await supabaseAdmin
+  async getAllAttendance(params) {
+    const { from, to, student_id, subject_id, month, program_id, department_id, batch_id, semester_id } = params || { from: 0, to: 9 };
+    let query = supabaseAdmin
       .from("operations_attendance")
       .select("*", { count: "exact" })
       .order("month", { ascending: false })
       .order("id", { ascending: false })
       .range(from, to);
+
+    if (student_id) query = query.eq("student_id", student_id);
+    if (subject_id) query = query.eq("subject_id", subject_id);
+    if (month) query = query.eq("month", month);
+    if (program_id) query = query.eq("program_id", program_id);
+    if (department_id) query = query.eq("department_id", department_id);
+    if (batch_id) query = query.eq("batch_id", batch_id);
+    if (semester_id) query = query.eq("semester_id", semester_id);
+
+    const { data, error, count } = await query;
 
     if (error) throw new Error(error.message);
 

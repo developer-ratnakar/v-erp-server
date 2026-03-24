@@ -13,7 +13,11 @@ export const createSubject = async (req, res, next) => {
 export const getAllSubjects = async (_req, res, next) => {
   try {
     const pagination = getPagination(_req.query);
-    const subjects = await operationsService.getAllSubjects(pagination);
+    pagination.search = _req.query.search;
+    pagination.department_id = _req.query.department_id;
+    pagination.program_id = _req.query.program_id;
+    
+    const subjects = await operationsService.getAllSubjects(pagination); // Changed to operationsService to maintain syntactic correctness as studentService is not imported.
     res.status(200).json({
       data: subjects.data,
       meta: {
@@ -66,6 +70,12 @@ export const createTimetable = async (req, res, next) => {
 export const getAllTimetables = async (_req, res, next) => {
   try {
     const pagination = getPagination(_req.query);
+    pagination.search = _req.query.search;
+    pagination.program_id = _req.query.program_id;
+    pagination.department_id = _req.query.department_id;
+    pagination.batch_id = _req.query.batch_id;
+    pagination.semester_id = _req.query.semester_id;
+
     const timetables = await operationsService.getAllTimetables(pagination);
     res.status(200).json({
       data: timetables.data,
