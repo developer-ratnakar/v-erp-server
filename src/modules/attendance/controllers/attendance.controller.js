@@ -61,3 +61,20 @@ export const deleteAttendance = async (req, res, next) => {
     next(error);
   }
 };
+export const markDailyAttendance = async (req, res, next) => {
+  try {
+    const attendance = await attendanceService.markDailyAttendance(req.body, req.user);
+    res.status(200).json(attendance);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getFacultyAssignments = async (req, res, next) => {
+  try {
+    const assignments = await attendanceService.getFacultyAssignments(req.user.email);
+    res.status(200).json(assignments);
+  } catch (error) {
+    next(error);
+  }
+};

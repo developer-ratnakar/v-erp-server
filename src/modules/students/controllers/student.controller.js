@@ -17,7 +17,10 @@ export const getAllStudents = async (_req, res, next) => {
   try {
     const pagination = getPagination(_req.query);
     pagination.search = _req.query.search;
+    pagination.program_id = _req.query.program_id;
     pagination.department_id = _req.query.department_id;
+    pagination.batch_id = _req.query.batch_id;
+    pagination.semester_id = _req.query.semester_id;
     const students = await studentService.getAllStudents(pagination);
     res.status(200).json({
       data: students.data,

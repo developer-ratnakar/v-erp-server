@@ -59,6 +59,13 @@ export const examIdParamSchema = {
   }),
 };
 
+export const gradeReportParamSchema = {
+  params: z.object({
+    examId: idParam,
+    studentId: idParam,
+  }),
+};
+
 export const resultIdParamSchema = {
   params: z.object({
     resultId: idParam,

@@ -11,6 +11,7 @@ class ExamResult {
     result_status,
     created_at,
     updated_at,
+    student,
   }) {
     this.id = id;
     this.examId = exam_id;
@@ -23,6 +24,12 @@ class ExamResult {
     this.resultStatus = result_status;
     this.createdAt = created_at;
     this.updatedAt = updated_at;
+    this.student = student ? {
+      id: student.id,
+      firstName: student.first_name,
+      lastName: student.last_name,
+      registrationNumber: student.registration_number,
+    } : null;
   }
 }
 

@@ -8,17 +8,22 @@ import {
   getAllAttendance,
   getAttendanceById,
   updateAttendance,
+  markDailyAttendance,
+  getFacultyAssignments,
 } from "../controllers/attendance.controller.js";
 import {
   attendanceIdParamSchema,
   createAttendanceSchema,
   updateAttendanceSchema,
+  markDailyAttendanceSchema,
 } from "../validation/attendance.validation.js";
 
 const attendanceRouter = Router();
 attendanceRouter.use(requireAuth);
 
+attendanceRouter.get("/assignments", getFacultyAssignments);
 attendanceRouter.post("/", requirePermission("attendance.write"), validate(createAttendanceSchema), createAttendance);
+attendanceRouter.post("/mark-daily", requirePermission("attendance.write"), validate(markDailyAttendanceSchema), markDailyAttendance);
 attendanceRouter.get("/", requirePermission("attendance.read"), validate(paginationQuerySchema), getAllAttendance);
 attendanceRouter.get("/:attendanceId", requirePermission("attendance.read"), validate(attendanceIdParamSchema), getAttendanceById);
 attendanceRouter.patch("/:attendanceId", requirePermission("attendance.write"), validate(updateAttendanceSchema), updateAttendance);

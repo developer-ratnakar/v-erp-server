@@ -10,6 +10,7 @@ class Attendance {
     batch_id,
     semester_id,
     session_id,
+    student,
   }) {
     this.id = id;
     this.studentId = student_id;
@@ -21,6 +22,7 @@ class Attendance {
     this.batchId = batch_id;
     this.semesterId = semester_id;
     this.sessionId = session_id;
+    this.student = student;
   }
 }
 

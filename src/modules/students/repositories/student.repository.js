@@ -19,7 +19,9 @@ class StudentRepository {
   }
 
   async getAllStudents(params) {
-    const { from, to, search, department_id } = params || { from: 0, to: 9 };
+    const from = params?.from || 0;
+    const to = params?.to || (params?.limit ? from + params.limit - 1 : from + 9);
+    const { search, program_id, department_id, batch_id, semester_id } = params || {};
     let query = supabaseAdmin
       .from("students")
       .select("*", { count: "exact" })
@@ -30,8 +32,17 @@ class StudentRepository {
       query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,registration_number.ilike.%${search}%,email.ilike.%${search}%`);
     }
 
+    if (program_id) {
+      query = query.eq("program_id", program_id);
+    }
     if (department_id) {
       query = query.eq("department_id", department_id);
+    }
+    if (batch_id) {
+      query = query.eq("batch_id", batch_id);
+    }
+    if (semester_id) {
+      query = query.eq("semester_id", semester_id);
     }
 
     const { data, error, count } = await query;
@@ -45,6 +56,7 @@ class StudentRepository {
   }
 
   async findStudentById(studentId) {
+    if (!studentId || studentId === 'undefined') return null;
     const { data, error } = await supabaseAdmin
       .from("students")
       .select("*")

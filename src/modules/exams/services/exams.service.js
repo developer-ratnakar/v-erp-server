@@ -56,7 +56,15 @@ class ExamsService {
 
   async getExamResults(examId) {
     await this.getExamById(examId);
-    return await examsRepository.getExamResults(examId);
+    const results = await examsRepository.getExamResults(examId);
+    
+    // Attach CGPA to each result
+    const resultsWithCGPA = await Promise.all(results.map(async (r) => {
+      const cgpa = await this.calculateCGPA(r.studentId);
+      return { ...r, cgpa };
+    }));
+
+    return resultsWithCGPA;
   }
 
   async updateExamResult(resultId, dto) {
@@ -164,6 +172,91 @@ class ExamsService {
   async deleteExamMark(markId) {
     await this.getExamMarkById(markId);
     await examsRepository.deleteExamMark(markId);
+  }
+
+  async bulkCreateOrUpdateMarks(examId, marksData) {
+    await this.getExamById(examId);
+    
+    // Enforce constraints and add exam_id
+    const marksToUpsert = marksData.map(m => ({
+      ...m,
+      exam_id: Number(examId)
+    }));
+
+    return await examsRepository.upsertExamMarks(marksToUpsert);
+  }
+
+  async bulkUpsertResults(examId, resultsData) {
+    await this.getExamById(examId);
+    
+    const resultsToUpsert = resultsData.map(r => ({
+      ...r,
+      exam_id: Number(examId)
+    }));
+
+    return await examsRepository.upsertExamResults(resultsToUpsert);
+  }
+
+  async calculateCGPA(studentId) {
+    if (!studentId || studentId === 'undefined') return 0;
+    const results = await examsRepository.getAllStudentResults(studentId);
+    if (results.length === 0) return 0;
+
+    const totalSGPA = results.reduce((sum, r) => sum + (r.sgpa || 0), 0);
+    const count = results.filter(r => r.sgpa !== null && r.sgpa !== undefined).length;
+    
+    return count > 0 ? Number((totalSGPA / count).toFixed(2)) : 0;
+  }
+
+  async generateResults(examId, batchId) {
+    await this.getExamById(examId);
+    
+    // Fetch all students for the batch
+    const studentsRes = await studentRepository.getAllStudents({ batch_id: batchId, limit: 1000 });
+    const students = studentsRes.data || [];
+
+    if (students.length === 0) {
+      throw new ApiError(404, "No students found in the selected batch");
+    }
+
+    const resultsData = students.map(s => ({
+      exam_id: Number(examId),
+      student_id: s.id,
+      result_status: 'PASS' // Default placeholder status
+    }));
+
+    await examsRepository.upsertExamResults(resultsData);
+    return await this.getExamResults(examId);
+  }
+
+  async getGradeReport(examId, studentId) {
+    const [exam, student, marks, results] = await Promise.all([
+      this.getExamById(examId),
+      studentRepository.findStudentById(studentId),
+      examsRepository.getStudentMarksByExam(examId, studentId),
+      examsRepository.getAllStudentResults(studentId)
+    ]);
+
+    if (!student) throw new ApiError(404, "Student not found");
+
+    const currentResult = results.find(r => r.examId === Number(examId));
+    const cgpa = await this.calculateCGPA(studentId);
+
+    return {
+      student,
+      exam,
+      marks: marks.map(m => ({
+        subjectName: m.subject?.name,
+        subjectCode: m.subject?.code,
+        grade: m.grade,
+        gradePoint: m.gradePoint
+      })),
+      result: {
+        sgpa: currentResult?.sgpa || 0,
+        cgpa: cgpa,
+        status: currentResult?.resultStatus || 'N/A'
+      }
+    };
   }
 
   async validateExamReferences(dto) {

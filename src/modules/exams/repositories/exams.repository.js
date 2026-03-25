@@ -81,7 +81,15 @@ class ExamsRepository {
   async getExamResults(examId) {
     const { data, error } = await supabaseAdmin
       .from("exam_results")
-      .select("*")
+      .select(`
+        *,
+        student:students (
+          id,
+          first_name,
+          last_name,
+          registration_number
+        )
+      `)
       .eq("exam_id", examId)
       .order("id", { ascending: true });
 
@@ -193,6 +201,77 @@ class ExamsRepository {
       .eq("id", markId);
 
     if (error) throw new Error(error.message);
+  }
+
+  async upsertExamMarks(marksData) {
+    const { data, error } = await supabaseAdmin
+      .from("exam_marks")
+      .upsert(marksData, { onConflict: "exam_id,student_id,subject_id" })
+      .select("*");
+
+    if (error) throw new Error(error.message);
+
+    return data.map((item) => new ExamMark(item));
+  }
+
+  async getMarksWithStudentInfo(examId, subjectId) {
+    const { data, error } = await supabaseAdmin
+      .from("exam_marks")
+      .select(`
+        *,
+        student:students (
+          id,
+          first_name,
+          last_name,
+          registration_number
+        )
+      `)
+      .eq("exam_id", examId)
+      .eq("subject_id", subjectId);
+
+    if (error) throw new Error(error.message);
+
+    return data;
+  }
+
+  async upsertExamResults(resultsData) {
+    const { data, error } = await supabaseAdmin
+      .from("exam_results")
+      .upsert(resultsData, { onConflict: "exam_id,student_id" })
+      .select("*");
+
+    if (error) throw new Error(error.message);
+
+    return data.map((item) => new ExamResult(item));
+  }
+
+  async getAllStudentResults(studentId) {
+    if (!studentId || studentId === 'undefined') return [];
+    const { data, error } = await supabaseAdmin
+      .from("exam_results")
+      .select("*")
+      .eq("student_id", studentId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    return data.map((item) => new ExamResult(item));
+  }
+
+  async getStudentMarksByExam(examId, studentId) {
+    if (!studentId || studentId === 'undefined') return [];
+    const { data, error } = await supabaseAdmin
+      .from("exam_marks")
+      .select(`
+        *,
+        subject:operations_subjects (id, name, code)
+      `)
+      .eq("exam_id", examId)
+      .eq("student_id", studentId);
+
+    if (error) throw new Error(error.message);
+
+    return data;
   }
 }
 

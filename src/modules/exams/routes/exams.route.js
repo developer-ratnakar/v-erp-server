@@ -14,10 +14,15 @@ import {
   getExamMarkById,
   getExamMarks,
   getExamResultById,
-  getExamResults,
+  bulkCreateOrUpdateMarks,
+  generateResults,
+  bulkUpsertResults,
+  getStudentCGPA,
   updateExam,
-  updateExamMark,
+  getExamResults,
   updateExamResult,
+  updateExamMark,
+  getGradeReport
 } from "../controllers/exams.controller.js";
 import {
   createExamMarkSchema,
@@ -29,6 +34,7 @@ import {
   examIdParamSchema,
   markIdParamSchema,
   resultIdParamSchema,
+  gradeReportParamSchema,
 } from "../validation/exams.validation.js";
 
 const examsRouter = Router();
@@ -51,5 +57,11 @@ examsRouter.get("/:examId/marks", requirePermission("exams.read"), validate(exam
 examsRouter.get("/marks/:markId", requirePermission("exams.read"), validate(markIdParamSchema), getExamMarkById);
 examsRouter.patch("/marks/:markId", requirePermission("exams.write"), validate(updateExamMarkSchema), updateExamMark);
 examsRouter.delete("/marks/:markId", requirePermission("exams.write"), validate(markIdParamSchema), deleteExamMark);
+
+examsRouter.post("/:examId/marks/bulk", requirePermission("exams.write"), validate(examIdParamSchema), bulkCreateOrUpdateMarks);
+examsRouter.post("/:examId/results/generate", requirePermission("exams.write"), validate(examIdParamSchema), generateResults);
+examsRouter.post("/:examId/results/bulk", requirePermission("exams.write"), validate(examIdParamSchema), bulkUpsertResults);
+examsRouter.get("/students/:studentId/cgpa", requirePermission("exams.read"), getStudentCGPA);
+examsRouter.get("/:examId/students/:studentId/report", requirePermission("exams.read"), validate(gradeReportParamSchema), getGradeReport);
 
 export default examsRouter;

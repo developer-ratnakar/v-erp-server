@@ -190,6 +190,23 @@ class OperationsRepository {
     return data ? data.map((item) => new TimetableEntry(item)) : [];
   }
 
+  async getFacultyTimetable(facultyId) {
+    const { data, error } = await supabaseAdmin
+      .from("operations_timetable_entries")
+      .select(`
+        *,
+        subject:operations_subjects (id, name, code),
+        timetable:operations_timetables (id, name, semester_id)
+      `)
+      .eq("faculty_id", facultyId)
+      .order("day", { ascending: true })
+      .order("start_time", { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    return data || [];
+  }
+
   async findTimetableEntryById(entryId) {
     const { data, error } = await supabaseAdmin
       .from("operations_timetable_entries")

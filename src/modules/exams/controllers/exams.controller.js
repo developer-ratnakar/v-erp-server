@@ -143,3 +143,48 @@ export const deleteExamMark = async (req, res, next) => {
     next(error);
   }
 };
+
+export const bulkCreateOrUpdateMarks = async (req, res, next) => {
+  try {
+    const marks = await examsService.bulkCreateOrUpdateMarks(req.params.examId, req.body);
+    res.status(200).json(marks);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const generateResults = async (req, res, next) => {
+  try {
+    const results = await examsService.generateResults(req.params.examId, req.query.batchId);
+    res.status(200).json(results);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const bulkUpsertResults = async (req, res, next) => {
+  try {
+    const results = await examsService.bulkUpsertResults(req.params.examId, req.body);
+    res.status(200).json(results);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getStudentCGPA = async (req, res, next) => {
+  try {
+    const cgpa = await examsService.calculateCGPA(req.params.studentId);
+    res.status(200).json({ cgpa });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getGradeReport = async (req, res, next) => {
+  try {
+    const report = await examsService.getGradeReport(req.params.examId, req.params.studentId);
+    res.status(200).json(report);
+  } catch (error) {
+    next(error);
+  }
+};
