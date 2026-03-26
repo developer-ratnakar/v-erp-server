@@ -23,6 +23,7 @@ export const createProgramSchema = {
     code: z.string().trim().min(2).max(20),
     name: z.string().trim().min(2).max(100),
     duration_years: z.coerce.number().int().min(1).max(10).optional(),
+    total_semesters: z.coerce.number().int().min(1).max(20).optional(),
     description: z.string().trim().optional(),
     is_active: z.boolean().optional(),
   }),
@@ -49,6 +50,8 @@ export const createSemesterSchema = {
   body: z.object({
     code: z.string().trim().min(2).max(20),
     name: z.string().trim().min(2).max(100),
+    number: z.coerce.number().int().min(1).max(20),
+    type: z.enum(["odd", "even"]),
     is_active: z.boolean().optional(),
   }),
 };

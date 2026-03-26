@@ -265,3 +265,39 @@ export const deleteSession = async (req, res, next) => {
     next(error);
   }
 };
+
+export const activateSession = async (req, res, next) => {
+  try {
+    const session = await academicService.activateSession(req.params.sessionId);
+    res.status(200).json(session);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateBatchSemester = async (req, res, next) => {
+  try {
+    const batch = await academicService.updateBatchSemester(req.params.batchId, req.body.semester_id);
+    res.status(200).json(batch);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const syncStudentsToBatch = async (req, res, next) => {
+  try {
+    const result = await academicService.syncStudentsToBatch(req.params.batchId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const syncAllToCurrentSession = async (req, res, next) => {
+  try {
+    const result = await academicService.syncAllToCurrentSession();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};

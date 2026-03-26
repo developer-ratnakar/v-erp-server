@@ -264,6 +264,50 @@ class AcademicService {
       this.handleDeleteConflict(error, "session");
     }
   }
+
+  async activateSession(id) {
+    await this.getSessionById(id);
+    return await academicRepository.toggleSessionCurrent(id);
+  }
+
+  async updateBatchSemester(id, semesterId) {
+    await this.getBatchById(id);
+    const semester = await academicRepository.findSemesterById(semesterId);
+    if (!semester) {
+      throw new ApiError(404, "Semester not found");
+    }
+
+    return await academicRepository.updateBatchSemester(id, semesterId);
+  }
+
+  async syncStudentsToBatch(batchId) {
+    const batch = await this.getBatchById(batchId);
+    if (!batch.current_semester) {
+      throw new ApiError(400, "Batch has no current semester assigned");
+    }
+
+    // Also get current session to sync
+    const currentSession = await academicRepository.findCurrentSession();
+    const sessionId = currentSession ? currentSession.id : null;
+
+    await academicRepository.syncStudentsToBatch(batchId, batch.current_semester, sessionId);
+    return { message: "Students synced to batch successfully" };
+  }
+
+  async syncAllToCurrentSession() {
+    const currentSession = await academicRepository.findCurrentSession();
+    if (!currentSession) {
+      throw new ApiError(404, "No current active session found");
+    }
+
+    await academicRepository.syncStudentsToSession(currentSession.id);
+    await academicRepository.syncStaffToSession(currentSession.id);
+
+    return { 
+      message: "Global academic sync completed successfully",
+      session: currentSession.name
+    };
+  }
 }
 
 export default new AcademicService();

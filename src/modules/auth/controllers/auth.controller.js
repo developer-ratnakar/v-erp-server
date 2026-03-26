@@ -2,6 +2,7 @@ import { LoginRequestDTO } from "../dto/login-request.dto.js";
 import { LoginResponseDTO } from "../dto/login-response.dto.js";
 import { CreateUserDTO } from "../dto/create-user.dto.js";
 import authService from "../services/auth.service.js";
+import { ApiResponse } from "../../../utils/ApiResponse.js";
 
 export const login = async (req, res, next) => {
   try {
@@ -11,7 +12,7 @@ export const login = async (req, res, next) => {
 
     const response = new LoginResponseDTO(result);
 
-    res.status(200).json(response);
+    res.status(200).json(new ApiResponse(200, response, "Login successful"));
   } catch (error) {
     next(error);
   }
@@ -20,7 +21,7 @@ export const login = async (req, res, next) => {
 export const getAllUsers = async (_req, res, next) => {
   try {
     const users = await authService.getAllUsers();
-    res.status(200).json(users);
+    res.status(200).json(new ApiResponse(200, users, "Users retrieved successfully"));
   } catch (err) {
     next(err);
   }
@@ -34,7 +35,7 @@ export const createUser = async (req, res, next) => {
 
     const response = new LoginResponseDTO(result);
 
-    res.status(201).json(response);
+    res.status(201).json(new ApiResponse(201, response, "User created successfully"));
   } catch (error) {
     next(error);
   }
@@ -44,13 +45,9 @@ export const refreshToken = async (req, res, next) => {
   try {
     const { refreshToken: token } = req.body;
 
-    if (!token) {
-      return res.status(400).json({ message: "refreshToken is required" });
-    }
-
     const tokens = await authService.refreshToken(token);
 
-    res.status(200).json(tokens);
+    res.status(200).json(new ApiResponse(200, tokens, "Token refreshed successfully"));
   } catch (error) {
     next(error);
   }

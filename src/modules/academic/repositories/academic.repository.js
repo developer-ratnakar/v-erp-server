@@ -432,11 +432,71 @@ class AcademicRepository {
     return new Session(data);
   }
 
-  async deleteSession(id) {
-    const { error } = await supabaseAdmin
+  async toggleSessionCurrent(id) {
+    // 1. Mark all sessions as not current
+    await supabaseAdmin
       .from("academic_sessions")
-      .delete()
-      .eq("id", id);
+      .update({ is_current: false });
+
+    // 2. Mark target session as current
+    const { data, error } = await supabaseAdmin
+      .from("academic_sessions")
+      .update({ is_current: true })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) throw new Error(error.message);
+    return new Session(data);
+  }
+
+  async findCurrentSession() {
+    const { data, error } = await supabaseAdmin
+      .from("academic_sessions")
+      .select("*")
+      .eq("is_current", true)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+  }
+
+  async updateBatchSemester(id, semesterId) {
+    const { data, error } = await supabaseAdmin
+      .from("academic_batches")
+      .update({ current_semester: semesterId })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) throw new Error(error.message);
+    return new Batch(data);
+  }
+
+  async syncStudentsToBatch(batchId, semesterId, sessionId) {
+    const updateData = { semester_id: semesterId };
+    if (sessionId) updateData.session_id = sessionId;
+
+    const { error } = await supabaseAdmin
+      .from("students")
+      .update(updateData)
+      .eq("batch_id", batchId);
+
+    if (error) throw new Error(error.message);
+  }
+
+  async syncStudentsToSession(sessionId) {
+    const { error } = await supabaseAdmin
+      .from("students")
+      .update({ session_id: sessionId });
+
+    if (error) throw new Error(error.message);
+  }
+
+  async syncStaffToSession(sessionId) {
+    const { error } = await supabaseAdmin
+      .from("hr_staff")
+      .update({ session_id: sessionId });
 
     if (error) throw new Error(error.message);
   }

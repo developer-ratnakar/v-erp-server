@@ -3,6 +3,7 @@ import { requireAuth, requirePermission } from "../../../middlewares/auth.middle
 import { validate } from "../../../middlewares/validate.middleware.js";
 import { paginationQuerySchema } from "../../common/validation/pagination.validation.js";
 import {
+  activateSession,
   createBatch,
   createDepartment,
   createProgram,
@@ -22,12 +23,15 @@ import {
   getDepartmentById,
   getProgramById,
   getSemesterById,
+  syncAllToCurrentSession,
   getSessionById,
   updateBatch,
   updateDepartment,
   updateProgram,
   updateSemester,
   updateSession,
+  updateBatchSemester,
+  syncStudentsToBatch
 } from "../controllers/academic.controller.js";
 import {
   batchIdParamSchema,
@@ -79,5 +83,11 @@ academicRouter.get("/sessions", requirePermission("academic.read"), validate(pag
 academicRouter.get("/sessions/:sessionId", requirePermission("academic.read"), validate(sessionIdParamSchema), getSessionById);
 academicRouter.patch("/sessions/:sessionId", requirePermission("academic.write"), validate(updateSessionSchema), updateSession);
 academicRouter.delete("/sessions/:sessionId", requirePermission("academic.write"), validate(sessionIdParamSchema), deleteSession);
+academicRouter.patch("/sessions/:sessionId/activate", requirePermission("academic.write"), validate(sessionIdParamSchema), activateSession);
+
+// Batch specific
+academicRouter.patch("/batches/:batchId/semester", requirePermission("academic.write"), validate(batchIdParamSchema), updateBatchSemester);
+academicRouter.post("/batches/:batchId/sync", requirePermission("academic.write"), validate(batchIdParamSchema), syncStudentsToBatch);
+academicRouter.post("/sync/all", requirePermission("academic.write"), syncAllToCurrentSession);
 
 export default academicRouter;

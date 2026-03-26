@@ -1,20 +1,22 @@
-
 import ApiError from "../errors/ApiError.js";
 
 const errorHandler = (err, req, res, next) => {
-  if (err instanceof ApiError) {
-    return res.status(err.statusCode).json({
-      success: false,
-      message: err.message,
-    });
+  let error = err;
+
+  // Standardize error if it's not already an ApiError
+  if (!(error instanceof ApiError)) {
+    const statusCode = error.statusCode || error.status || 500;
+    const message = error.message || "Internal Server Error";
+    error = new ApiError(statusCode, message, [], err.stack);
   }
 
-  console.error("Unhandled error:", err);
+  const response = {
+    ...error,
+    message: error.message,
+    ...(process.env.NODE_ENV === "development" ? { stack: error.stack } : {}),
+  };
 
-  return res.status(500).json({
-    success: false,
-    message: "Internal Server Error",
-  });
+  return res.status(error.statusCode).json(response);
 };
 
 export default errorHandler;

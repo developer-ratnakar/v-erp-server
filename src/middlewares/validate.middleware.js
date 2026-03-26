@@ -1,3 +1,5 @@
+import ApiError from "../errors/ApiError.js";
+
 const getValidationTargets = (schema) => {
   if (typeof schema.safeParse === "function") {
     return { body: schema };
@@ -20,8 +22,8 @@ export const validate = (schema) => (req, res, next) => {
     if (!result.success) {
       validationErrors.push(
         ...result.error.issues.map((issue) => ({
-          source: key,
-          ...issue,
+          field: issue.path.join("."),
+          message: issue.message,
         })),
       );
       continue;
@@ -39,11 +41,7 @@ export const validate = (schema) => (req, res, next) => {
   }
 
   if (validationErrors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Validation failed",
-      errors: validationErrors,
-    });
+    return next(new ApiError(400, "Validation failed", validationErrors));
   }
 
   next();
