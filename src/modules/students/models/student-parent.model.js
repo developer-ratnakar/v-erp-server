@@ -11,6 +11,8 @@ class StudentParent {
     income_certificate_url,
     caste_certificate_url,
     residence_certificate_url,
+    father_contact,
+    parents_email,
   }) {
     this.id = id;
     this.studentId = student_id;
@@ -23,6 +25,8 @@ class StudentParent {
     this.incomeCertificateUrl = income_certificate_url;
     this.casteCertificateUrl = caste_certificate_url;
     this.residenceCertificateUrl = residence_certificate_url;
+    this.fatherContact = father_contact;
+    this.parentsEmail = parents_email;
   }
 }
 

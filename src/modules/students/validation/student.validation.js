@@ -25,6 +25,15 @@ export const createStudentSchema = {
     department_id: z.coerce.number().int().positive().optional(),
     batch_id: z.coerce.number().int().positive().optional(),
     semester_id: z.coerce.number().int().positive().optional(),
+    gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
+    category: z.enum(["GENERAL", "OBC", "SC", "ST"]).optional(),
+    sc_st_scheme: z.boolean().optional(),
+    tenth_percent: z.coerce.number().min(0).max(100).optional(),
+    tenth_board: z.string().trim().max(100).optional(),
+    inter_percent: z.coerce.number().min(0).max(100).optional(),
+    inter_board: z.string().trim().max(100).optional(),
+    aadhar_number: z.string().trim().max(20).optional(),
+    alt_contact: z.string().trim().max(20).optional(),
   }),
 };
 
@@ -49,6 +58,8 @@ export const saveStudentParentSchema = {
     income_certificate_url: nullableUrl,
     caste_certificate_url: nullableUrl,
     residence_certificate_url: nullableUrl,
+    father_contact: z.string().trim().max(20).optional(),
+    parents_email: z.string().trim().email().optional(),
   }),
 };
 
@@ -128,4 +139,35 @@ export const changeStudentDepartmentSchema = {
     message: "At least one target academic field is required",
     path: ["to_department_id"],
   }),
+};
+
+export const bulkCreateStudentSchema = {
+  body: z.array(
+    createStudentSchema.body.extend({
+      // Parent fields
+      father_name: z.string().trim().max(100).optional(),
+      mother_name: z.string().trim().max(100).optional(),
+      guardian_name: z.string().trim().max(100).optional(),
+      // Address fields
+      country: z.string().trim().max(100).optional(),
+      state: z.string().trim().max(100).optional(),
+      district: z.string().trim().max(100).optional(),
+      city: z.string().trim().max(100).optional(),
+      pincode: z.string().trim().max(20).optional(),
+      address_line1: z.string().trim().optional(),
+      address_line2: z.string().trim().optional(),
+      // New fields from expansion
+      gender: z.string().trim().toUpperCase().pipe(z.enum(["MALE", "FEMALE", "OTHER"])).optional(),
+      category: z.string().trim().toUpperCase().pipe(z.enum(["GENERAL", "OBC", "SC", "ST"])).optional(),
+      sc_st_scheme: z.boolean().or(z.enum(["Yes", "No", "yes", "no", "YES", "NO"])).transform(v => v === true || v.toString().toLowerCase() === "yes").optional(),
+      tenth_percent: z.coerce.number().optional(),
+      tenth_board: z.string().trim().optional(),
+      inter_percent: z.coerce.number().optional(),
+      inter_board: z.string().trim().optional(),
+      aadhar_number: z.string().trim().optional(),
+      alt_contact: z.string().trim().optional(),
+      father_contact: z.string().trim().optional(),
+      parents_email: z.string().trim().optional(),
+    })
+  ),
 };

@@ -80,6 +80,33 @@ class StudentRepository {
     return data ? new Student(data) : null;
   }
 
+  async findStudentsByRegistrationNumbers(registrationNumbers) {
+    if (!registrationNumbers || registrationNumbers.length === 0) return [];
+    
+    // Split into chunks if too large to avoid URL length limits, but usually bulk upload is < 1000
+    const { data, error } = await supabaseAdmin
+      .from("students")
+      .select("registration_number")
+      .in("registration_number", registrationNumbers);
+
+    if (error) throw new Error(error.message);
+
+    return data;
+  }
+
+  async findStudentsByApaarIds(apaarIds) {
+    if (!apaarIds || apaarIds.length === 0) return [];
+    
+    const { data, error } = await supabaseAdmin
+      .from("students")
+      .select("apaar_id")
+      .in("apaar_id", apaarIds);
+
+    if (error) throw new Error(error.message);
+
+    return data;
+  }
+
   async findStudentByApaarId(apaarId) {
     const { data, error } = await supabaseAdmin
       .from("students")
@@ -286,6 +313,37 @@ class StudentRepository {
       .eq("id", studentId);
 
     if (error) throw new Error(error.message);
+  }
+
+  async createStudentsBulk(studentsData) {
+    const { data, error } = await supabaseAdmin
+      .from("students")
+      .insert(studentsData)
+      .select("*");
+
+    if (error) throw new Error(error.message);
+
+    return data.map((item) => new Student(item));
+  }
+
+  async createParentsBulk(parentsData) {
+    const { data, error } = await supabaseAdmin
+      .from("student_parents")
+      .insert(parentsData)
+      .select("*");
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async createAddressesBulk(addressesData) {
+    const { data, error } = await supabaseAdmin
+      .from("student_addresses")
+      .insert(addressesData)
+      .select("*");
+
+    if (error) throw new Error(error.message);
+    return data;
   }
 }
 

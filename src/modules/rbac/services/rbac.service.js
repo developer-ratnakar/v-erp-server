@@ -35,6 +35,15 @@ class RBACService {
     return await RBACRepository.getUserRoles(userId);
   }
 
+  async removeRoleFromUser(userId, roleId) {
+    const existingAssignment = await RBACRepository.findUserRoleMapping(userId, roleId);
+    if (!existingAssignment) {
+      throw new ApiError(404, "Role is not assigned to this user");
+    }
+    return await RBACRepository.removeRoleFromUser(userId, roleId);
+  }
+
+
   async getAllRoles() {
     return await RBACRepository.getAllRoles();
   }

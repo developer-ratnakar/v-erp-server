@@ -108,6 +108,31 @@ class AttendanceRepository {
     if (error) throw new Error(error.message);
     return data;
   }
+
+  async findAttendancesForStudents(studentIds, subjectId, month) {
+    const normalizedMonth = month.length === 7 ? `${month}-01` : month;
+    const { data, error } = await supabaseAdmin
+      .from("operations_attendance")
+      .select("*")
+      .in("student_id", studentIds)
+      .eq("subject_id", subjectId)
+      .eq("month", normalizedMonth);
+
+    if (error) throw new Error(error.message);
+
+    return data ? data.map(item => new Attendance(item)) : [];
+  }
+
+  async upsertAttendances(attendanceRecords) {
+    const { data, error } = await supabaseAdmin
+      .from("operations_attendance")
+      .upsert(attendanceRecords)
+      .select("*");
+
+    if (error) throw new Error(error.message);
+
+    return data ? data.map(item => new Attendance(item)) : [];
+  }
 }
 
 export default new AttendanceRepository();

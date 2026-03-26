@@ -118,6 +118,19 @@ class AuthService {
   async getAllUsers() {
     return await authRepository.getAllUsers();
   }
+
+  async deleteUser(userId) {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+    return await authRepository.deleteUser(userId);
+  }
+
+  async changeUserPassword(userId, newPassword) {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return await authRepository.changeUserPassword(userId, hashedPassword);
+  }
 }
 
 export default new AuthService();

@@ -21,6 +21,7 @@ import {
   updateStudent,
   updateStudentAddress,
   updateStudentDocument,
+  bulkCreateStudents,
 } from "../controllers/student.controller.js";
 import {
   addressIdParamSchema,
@@ -34,12 +35,14 @@ import {
   updateStudentAddressSchema,
   updateStudentDocumentSchema,
   updateStudentSchema,
+  bulkCreateStudentSchema,
 } from "../validation/student.validation.js";
 
 const studentRouter = Router();
 studentRouter.use(requireAuth);
 
 studentRouter.post("/", requirePermission("students.write"), validate(createStudentSchema), createStudent);
+studentRouter.post("/bulk", requirePermission("students.write"), validate(bulkCreateStudentSchema), bulkCreateStudents);
 studentRouter.get("/", requirePermission("students.read"), validate(paginationQuerySchema), getAllStudents);
 studentRouter.get("/:studentId", requirePermission("students.read"), validate(studentIdParamSchema), getStudentById);
 studentRouter.patch("/:studentId", requirePermission("students.write"), validate(updateStudentSchema), updateStudent);

@@ -160,12 +160,32 @@ class AuthRepository {
   async getAllUsers() {
     const { data, error } = await supabaseAdmin
       .from("users")
-      .select("id, email, first_name, last_name, created_at")
-      .order("created_at", { ascending: false });
+      .select("*")
+      .is("deleted_at", null);
 
     if (error) throw new Error(error.message);
 
-    return data ? data.map((u) => new User(u)) : [];
+    return data ? data.filter(u => u).map((u) => new User(u)) : [];
+  }
+
+  async deleteUser(userId) {
+    const { error } = await supabaseAdmin
+      .from("users")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", userId);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
+
+  async changeUserPassword(userId, hashedPassword) {
+    const { error } = await supabaseAdmin
+      .from("users")
+      .update({ password: hashedPassword })
+      .eq("id", userId);
+
+    if (error) throw new Error(error.message);
+    return true;
   }
 }
 

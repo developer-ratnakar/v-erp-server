@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import ApiError from "../errors/ApiError.js";
-import authRepository from "../modules/auth/repositories/auth.repository.js";
 import rbacService from "../modules/rbac/services/rbac.service.js";
 
 const extractBearerToken = (authorizationHeader) => {
@@ -39,16 +38,10 @@ export const requireAuth = async (req, _res, next) => {
       throw new ApiError(401, "Invalid token payload format");
     }
 
-    const user = await authRepository.findUserById(userId);
-
-    if (!user) {
-      throw new ApiError(401, "User not found");
-    }
-
-    req.user = user;
+    req.user = { id: userId, email: payload.email, roles: payload.roles || [] };
     req.auth = {
       token,
-      userId: user.id,
+      userId,
     };
 
     next();
@@ -56,6 +49,7 @@ export const requireAuth = async (req, _res, next) => {
     next(error);
   }
 };
+
 
 export const requirePermission = (permission) => async (req, _res, next) => {
   try {

@@ -157,18 +157,15 @@ class AttendanceService {
     const isAdmin = roles.some(r => r.roleName === 'admin' || r.roleName === 'developer');
 
     if (!isAdmin) {
-      // If batch_id is missing, try to resolve it from the first student's record
       if (!batch_id && students.length > 0) {
         const student = await studentRepository.findStudentById(students[0].student_id);
         batch_id = student?.batchId;
       }
 
-      console.log(`[Attendance] Faculty check: email=${user.email}, subject=${subject_id}, batch=${batch_id}`);
       const staff = await hrRepository.findStaffByEmail(user.email);
       if (!staff) throw new ApiError(403, "Faculty record not found for this user");
 
       const assignments = await attendanceRepository.getFacultyAssignments(staff.id);
-      console.log(`[Attendance] Assignments found: ${JSON.stringify(assignments)}`);
 
       const isAssigned = assignments.some(a => 
         (a.subject_id === subject_id || a.subject_id === String(subject_id)) && 
@@ -176,7 +173,6 @@ class AttendanceService {
       );
 
       if (!isAssigned) {
-        console.warn(`[Attendance] Assignment NOT found for ${user.email}`);
         throw new ApiError(403, "You are not assigned to mark attendance for this class/subject");
       }
     }
@@ -185,14 +181,20 @@ class AttendanceService {
     const monthStr = `${year}-${String(month).padStart(2, "0")}-01`;
     const dayIndex = day - 1;
 
-    const results = [];
+    const studentIds = students.map(s => s.student_id);
+    const existingAttendances = await attendanceRepository.findAttendancesForStudents(
+      studentIds, subject_id, monthStr
+    );
+
+    const existingMap = new Map();
+    for (const record of existingAttendances) {
+      existingMap.set(record.studentId, record);
+    }
+
+    const recordsToUpsert = [];
 
     for (const { student_id, status } of students) {
-      let attendance = await attendanceRepository.findAttendanceByUniqueKey(
-        student_id,
-        subject_id,
-        monthStr,
-      );
+      let attendance = existingMap.get(student_id);
 
       if (attendance) {
         let dataArray = attendance.attendanceData.split(",");
@@ -200,18 +202,21 @@ class AttendanceService {
         dataArray[dayIndex] = status;
         const updatedData = dataArray.join(",");
 
-        const updated = await attendanceRepository.updateAttendance(attendance.id, {
+        recordsToUpsert.push({
+          id: attendance.id,
+          student_id,
+          subject_id,
+          month: monthStr,
           attendance_data: updatedData,
           batch_id: batch_id || metadata.batch_id,
           ...metadata,
         });
-        results.push(updated);
       } else {
         let dataArray = Array(31).fill("-");
         dataArray[dayIndex] = status;
         const newData = dataArray.join(",");
 
-        const created = await attendanceRepository.createAttendance({
+        recordsToUpsert.push({
           student_id,
           subject_id,
           month: monthStr,
@@ -219,11 +224,12 @@ class AttendanceService {
           batch_id: batch_id || metadata.batch_id,
           ...metadata,
         });
-        results.push(created);
       }
     }
 
-    return results;
+    return recordsToUpsert.length > 0 
+      ? await attendanceRepository.upsertAttendances(recordsToUpsert) 
+      : [];
   }
 
   async getFacultyAssignments(email) {

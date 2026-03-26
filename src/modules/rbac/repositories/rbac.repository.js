@@ -150,14 +150,16 @@ class RBACRepository {
         `
         role_id,
         roles (
-        id,
-        role_name
+          id,
+          role_name
         )
         `,
       )
       .eq("user_id", userId);
+
     if (error) throw new Error(error.message);
-    return data ? data.map((item) => new Role(item.roles)) : [];
+
+    return data ? data.filter(item => item.roles).map((item) => new Role(item.roles)) : [];
   }
 
   async getRolePermissions(roleId) {
@@ -165,8 +167,10 @@ class RBACRepository {
       .from("role_permission_mapping")
       .select(`permission_id, permissions (id, permission_type, module_id)`)
       .eq("role_id", roleId);
+
     if (error) throw new Error(error.message);
-    return data ? data.map((item) => new Permission(item.permissions)) : [];
+
+    return data ? data.filter(item => item.permissions).map((item) => new Permission(item.permissions)) : [];
   }
 
   async getAllRoles() {
@@ -177,7 +181,7 @@ class RBACRepository {
 
     if (error) throw new Error(error.message);
 
-    return data ? data.map((item) => new Role(item)) : [];
+    return data ? data.filter(item => item).map((item) => new Role(item)) : [];
   }
 
   async getAllPermissions() {
@@ -188,7 +192,18 @@ class RBACRepository {
 
     if (error) throw new Error(error.message);
 
-    return data ? data.map((item) => new Permission(item)) : [];
+    return data ? data.filter(item => item).map((item) => new Permission(item)) : [];
+  }
+
+  async removeRoleFromUser(userId, roleId) {
+    const { error } = await supabaseAdmin
+      .from("user_role_mapping")
+      .delete()
+      .eq("user_id", userId)
+      .eq("role_id", roleId);
+
+    if (error) throw new Error(error.message);
+    return true;
   }
 }
 

@@ -13,7 +13,22 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors());
+const whitelist = process.env.ALLOWED_ORIGIN 
+  ? process.env.ALLOWED_ORIGIN.split(',') 
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(morgan("dev"));
 app.use(express.json());

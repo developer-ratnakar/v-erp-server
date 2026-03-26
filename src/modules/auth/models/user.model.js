@@ -16,25 +16,25 @@ class User {
     deleted_at,
     deleted_by,
   }) {
-    this.id = id
+    this.id = id || null
     this.firstName = firstName ?? first_name ?? null
     this.middleName = middleName ?? middle_name ?? null
     this.lastName = lastName ?? last_name ?? null
-    this.email = email
-    this.password = password
-    this.createdAt = created_at
-    this.createdBy = created_by
-    this.updatedAt = updated_at
-    this.updatedBy = updated_by
-    this.deletedAt = deleted_at
-    this.deletedBy = deleted_by
+    this.email = email || null
+    this.password = password || null
+    this.createdAt = created_at || null
+    this.createdBy = created_by || null
+    this.updatedAt = updated_at || null
+    this.updatedBy = updated_by || null
+    this.deletedAt = deleted_at || null
+    this.deletedBy = deleted_by || null
   }
 
   toPersistence() {
     return {
-      firstName: this.firstName,
-      middleName: this.middleName,
-      lastName: this.lastName,
+      first_name: this.firstName,
+      middle_name: this.middleName,
+      last_name: this.lastName,
       email: this.email,
       password: this.password,
     }

@@ -433,12 +433,8 @@ class AcademicRepository {
   }
 
   async toggleSessionCurrent(id) {
-    // 1. Mark all sessions as not current
-    await supabaseAdmin
-      .from("academic_sessions")
-      .update({ is_current: false });
-
-    // 2. Mark target session as current
+    // The database trigger 'trg_ensure_single_current_session' will automatically
+    // unset other current sessions when this one is set to current.
     const { data, error } = await supabaseAdmin
       .from("academic_sessions")
       .update({ is_current: true })
@@ -459,6 +455,7 @@ class AcademicRepository {
       .maybeSingle();
 
     if (error) throw new Error(error.message);
+    return data ? new Session(data) : null;
   }
 
   async updateBatchSemester(id, semesterId) {
@@ -488,7 +485,8 @@ class AcademicRepository {
   async syncStudentsToSession(sessionId) {
     const { error } = await supabaseAdmin
       .from("students")
-      .update({ session_id: sessionId });
+      .update({ session_id: sessionId })
+      .neq("id", 0);
 
     if (error) throw new Error(error.message);
   }
@@ -496,7 +494,8 @@ class AcademicRepository {
   async syncStaffToSession(sessionId) {
     const { error } = await supabaseAdmin
       .from("hr_staff")
-      .update({ session_id: sessionId });
+      .update({ session_id: sessionId })
+      .neq("id", 0);
 
     if (error) throw new Error(error.message);
   }

@@ -16,6 +16,15 @@ class Student {
     department_id,
     batch_id,
     semester_id,
+    gender,
+    category,
+    sc_st_scheme,
+    tenth_percent,
+    tenth_board,
+    inter_percent,
+    inter_board,
+    aadhar_number,
+    alt_contact,
     created_at,
     updated_at,
   }) {
@@ -35,6 +44,15 @@ class Student {
     this.departmentId = department_id;
     this.batchId = batch_id;
     this.semesterId = semester_id;
+    this.gender = gender;
+    this.category = category;
+    this.scStScheme = sc_st_scheme;
+    this.tenthPercent = tenth_percent;
+    this.tenthBoard = tenth_board;
+    this.interPercent = inter_percent;
+    this.interBoard = inter_board;
+    this.aadharNumber = aadhar_number;
+    this.altContact = alt_contact;
     this.createdAt = created_at;
     this.updatedAt = updated_at;
   }

@@ -58,11 +58,27 @@ class ExamsService {
     await this.getExamById(examId);
     const results = await examsRepository.getExamResults(examId);
     
-    // Attach CGPA to each result
-    const resultsWithCGPA = await Promise.all(results.map(async (r) => {
-      const cgpa = await this.calculateCGPA(r.studentId);
+    if (results.length === 0) return [];
+
+    const studentIds = results.map(r => r.studentId);
+    const allHistoricalResults = await examsRepository.getAllResultsForStudents(studentIds);
+
+    const resultsByStudent = new Map();
+    for (const r of allHistoricalResults) {
+      if (!resultsByStudent.has(r.studentId)) {
+        resultsByStudent.set(r.studentId, []);
+      }
+      resultsByStudent.get(r.studentId).push(r);
+    }
+
+    const resultsWithCGPA = results.map((r) => {
+      const studentResults = resultsByStudent.get(r.studentId) || [];
+      const totalSGPA = studentResults.reduce((sum, res) => sum + (res.sgpa || 0), 0);
+      const count = studentResults.filter(res => res.sgpa !== null && res.sgpa !== undefined).length;
+      const cgpa = count > 0 ? Number((totalSGPA / count).toFixed(2)) : 0;
+      
       return { ...r, cgpa };
-    }));
+    });
 
     return resultsWithCGPA;
   }

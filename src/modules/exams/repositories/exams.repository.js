@@ -258,6 +258,18 @@ class ExamsRepository {
     return data.map((item) => new ExamResult(item));
   }
 
+  async getAllResultsForStudents(studentIds) {
+    if (!studentIds || studentIds.length === 0) return [];
+    const { data, error } = await supabaseAdmin
+      .from("exam_results")
+      .select("*")
+      .in("student_id", studentIds);
+
+    if (error) throw new Error(error.message);
+
+    return data.map((item) => new ExamResult(item));
+  }
+
   async getStudentMarksByExam(examId, studentId) {
     if (!studentId || studentId === 'undefined') return [];
     const { data, error } = await supabaseAdmin

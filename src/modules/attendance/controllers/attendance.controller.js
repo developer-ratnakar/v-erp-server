@@ -1,10 +1,11 @@
 import attendanceService from "../services/attendance.service.js";
 import { getPagination } from "../../../utils/pagination.js";
+import { ApiResponse } from "../../../utils/ApiResponse.js";
 
 export const createAttendance = async (req, res, next) => {
   try {
     const attendance = await attendanceService.createAttendance(req.body);
-    res.status(201).json(attendance);
+    res.status(201).json(new ApiResponse(201, attendance, "Attendance created successfully"));
   } catch (error) {
     next(error);
   }
@@ -22,14 +23,14 @@ export const getAllAttendance = async (_req, res, next) => {
     pagination.semester_id = _req.query.semester_id;
     
     const attendance = await attendanceService.getAllAttendance(pagination);
-    res.status(200).json({
+    res.status(200).json(new ApiResponse(200, {
       data: attendance.data,
       meta: {
         page: pagination.page,
         limit: pagination.limit,
         total: attendance.count,
       },
-    });
+    }, "Attendance retrieved successfully"));
   } catch (error) {
     next(error);
   }
@@ -38,7 +39,7 @@ export const getAllAttendance = async (_req, res, next) => {
 export const getAttendanceById = async (req, res, next) => {
   try {
     const attendance = await attendanceService.getAttendanceById(req.params.attendanceId);
-    res.status(200).json(attendance);
+    res.status(200).json(new ApiResponse(200, attendance, "Attendance retrieved successfully"));
   } catch (error) {
     next(error);
   }
@@ -47,7 +48,7 @@ export const getAttendanceById = async (req, res, next) => {
 export const updateAttendance = async (req, res, next) => {
   try {
     const attendance = await attendanceService.updateAttendance(req.params.attendanceId, req.body);
-    res.status(200).json(attendance);
+    res.status(200).json(new ApiResponse(200, attendance, "Attendance updated successfully"));
   } catch (error) {
     next(error);
   }
@@ -64,7 +65,7 @@ export const deleteAttendance = async (req, res, next) => {
 export const markDailyAttendance = async (req, res, next) => {
   try {
     const attendance = await attendanceService.markDailyAttendance(req.body, req.user);
-    res.status(200).json(attendance);
+    res.status(200).json(new ApiResponse(200, attendance, "Daily attendance marked successfully"));
   } catch (error) {
     next(error);
   }
@@ -73,7 +74,7 @@ export const markDailyAttendance = async (req, res, next) => {
 export const getFacultyAssignments = async (req, res, next) => {
   try {
     const assignments = await attendanceService.getFacultyAssignments(req.user.email);
-    res.status(200).json(assignments);
+    res.status(200).json(new ApiResponse(200, assignments, "Faculty assignments retrieved successfully"));
   } catch (error) {
     next(error);
   }

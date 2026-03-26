@@ -32,6 +32,16 @@ export const assignRoleToUser = async (req, res, next) => {
   }
 };
 
+export const removeRoleFromUser = async (req, res, next) => {
+  try {
+    const { userId, roleId } = req.params;
+    await rbacService.removeRoleFromUser(userId, roleId);
+    res.status(200).json(new ApiResponse(200, null, "Role removed from user successfully"));
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getUserRoles = async (req, res, next) => {
   try {
     const userId = req.params.userId || req.body.userId;
@@ -106,7 +116,7 @@ export const checkUserPermission = async (req, res, next) => {
 export const bootstrapAdmin = async (req, res, next) => {
   try {
     const { email, secret } = req.body;
-    if (secret !== process.env.JWT_SECRET) {
+    if (secret !== process.env.BOOTSTRAP_SECRET) {
       throw new ApiError(403, "Invalid bootstrap secret");
     }
     const result = await rbacService.bootstrapAdmin(email);
