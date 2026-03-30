@@ -95,8 +95,8 @@ class AuthRepository {
       .eq("user_id", userId);
 
     if (error) throw new Error(error.message);
-
-    return data ? data.map((item) => new Role(item.roles)) : [];
+    
+    return data ? data.filter(item => item.roles).map((item) => new Role(item.roles)) : [];
   }
 
   async getRolePermissions(roleId) {

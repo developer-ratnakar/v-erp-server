@@ -36,9 +36,13 @@ class AuthService {
 
     const [roles, permissions] = await Promise.all([
       authRepository.getUserRoles(user.id),
-      authRepository.getUserRoles(user.id).then(async (userRoles) => {
+      authRepository.getRolePermissions(user.id).then(async () => {
+        const userRoles = await authRepository.getUserRoles(user.id);
+        if (!Array.isArray(userRoles)) return [];
         const perms = await Promise.all(
-          userRoles.map((role) => authRepository.getRolePermissions(role.id))
+          userRoles
+            .filter((role) => role && role.id)
+            .map((role) => authRepository.getRolePermissions(role.id))
         );
         return perms.flat();
       }),
