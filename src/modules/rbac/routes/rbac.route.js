@@ -3,6 +3,7 @@ import { requireAuth } from "../../../middlewares/auth.middleware.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import {
   assignPermissionToRole,
+  removePermissionFromRole,
   assignRoleToUser,
   removeRoleFromUser,
   checkUserPermission,
@@ -40,13 +41,18 @@ rbacRouter.post(
   validate(assignPermissionToRoleSchema),
   assignPermissionToRole,
 );
+rbacRouter.delete(
+  "/roles/:roleId/permissions/:permissionId",
+  validate(assignPermissionToRoleSchema),
+  removePermissionFromRole,
+);
 
 rbacRouter.post("/permissions", validate(createPermissionSchema), createPermission);
 rbacRouter.get("/permissions", getAllPermissions);
 
 rbacRouter.get("/users/:userId/roles", validate(getUserRolesSchema), getUserRoles);
 rbacRouter.post("/users/:userId/roles/:roleId", validate(assignRoleToUserSchema), assignRoleToUser);
-rbacRouter.delete("/users/:userId/roles/:roleId", removeRoleFromUser);
+rbacRouter.delete("/users/:userId/roles/:roleId", validate(assignRoleToUserSchema), removeRoleFromUser);
 rbacRouter.get("/users/:userId/permissions", validate(getUserPermissionsSchema), getUserPermissions);
 rbacRouter.get(
   "/users/:userId/permissions/:permission",

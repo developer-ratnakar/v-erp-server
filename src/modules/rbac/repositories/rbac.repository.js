@@ -98,6 +98,17 @@ class RBACRepository {
     return new RolePermissionMapping(data);
   }
 
+  async removePermissionFromRole(roleId, permissionId) {
+    const { error } = await supabaseAdmin
+      .from("role_permission_mapping")
+      .delete()
+      .eq("role_id", roleId)
+      .eq("permission_id", permissionId);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
+
   async findRolePermissionMapping(roleId, permissionId) {
     const { data, error } = await supabaseAdmin
       .from("role_permission_mapping")

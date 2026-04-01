@@ -82,6 +82,16 @@ export const assignPermissionToRole = async (req, res, next) => {
   }
 };
 
+export const removePermissionFromRole = async (req, res, next) => {
+  try {
+    const { roleId, permissionId } = req.params;
+    await rbacService.removePermissionFromRole(roleId, permissionId);
+    res.status(200).json(new ApiResponse(200, null, "Permission removed from role successfully"));
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getRolePermissions = async (req, res, next) => {
   try {
     const roleId = req.params.roleId || req.body.roleId;

@@ -93,6 +93,14 @@ class RBACService {
     return await RBACRepository.assignPermissionToRole(roleId, permissionId);
   }
 
+  async removePermissionFromRole(roleId, permissionId) {
+    const existingAssignment = await RBACRepository.findRolePermissionMapping(roleId, permissionId);
+    if (!existingAssignment) {
+        throw new ApiError(404, "Permission is not assigned to this role");
+    }
+    return await RBACRepository.removePermissionFromRole(roleId, permissionId);
+  }
+
   async getAllPermissions() {
     return await RBACRepository.getAllPermissions();
   }
