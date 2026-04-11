@@ -5,8 +5,15 @@ const errorHandler = (err, req, res, next) => {
 
   // Standardize error if it's not already an ApiError
   if (!(error instanceof ApiError)) {
-    const statusCode = error.statusCode || error.status || 500;
-    const message = error.message || "Internal Server Error";
+    let statusCode = error.statusCode || error.status || 500;
+    let message = error.message || "Internal Server Error";
+
+    // Intercept generic 'fetch failed' (e.g. Supabase ENOTFOUND when paused)
+    if (message.includes("fetch failed") || (error.cause && error.cause.code === "ENOTFOUND")) {
+      statusCode = 503;
+      message = "Database connection failed. If you are using a free-tier Supabase instance, it might be paused due to inactivity. Please check your Supabase dashboard.";
+    }
+
     error = new ApiError(statusCode, message, [], err.stack);
   }
 

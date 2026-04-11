@@ -34,19 +34,17 @@ class AuthService {
       throw new ApiError(401, "Invalid Credentials");
     }
 
-    const [roles, permissions] = await Promise.all([
-      authRepository.getUserRoles(user.id),
-      authRepository.getRolePermissions(user.id).then(async () => {
-        const userRoles = await authRepository.getUserRoles(user.id);
-        if (!Array.isArray(userRoles)) return [];
-        const perms = await Promise.all(
-          userRoles
-            .filter((role) => role && role.id)
-            .map((role) => authRepository.getRolePermissions(role.id))
-        );
-        return perms.flat();
-      }),
-    ]);
+    const roles = await authRepository.getUserRoles(user.id);
+
+    const permissions = await (async () => {
+      if (!Array.isArray(roles) || roles.length === 0) return [];
+      const perms = await Promise.all(
+        roles
+          .filter((role) => role && role.id)
+          .map((role) => authRepository.getRolePermissions(role.id))
+      );
+      return perms.flat();
+    })();
 
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
