@@ -15,7 +15,7 @@ const app = express();
 
 const whitelist = process.env.ALLOWED_ORIGIN 
   ? process.env.ALLOWED_ORIGIN.split(',') 
-  : ['http://localhost:5173', 'http://localhost:3000'];
+  : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'];
 
 const corsOptions = {
   origin: function (origin, callback) {
