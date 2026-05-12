@@ -52,10 +52,10 @@ class CLCService {
       student_id: dto.student_id,
       certificate_no: dto.certificate_no || `CLC-${uniqueSuffix}`,
       serial_no: dto.serial_no || `${registrationNumber}/${yearSuffix}`,
-      institute_name: dto.institute_name || "Vikash Polytechnic, Bargarh",
+      institute_name: dto.institute_name || "Vikash Institute of Technology, Bargarh",
       institute_location: dto.institute_location || "Bargarh, Odisha",
       affiliating_body:
-        dto.affiliating_body || "State Council for Technical Education & Vocational Training, Odisha",
+        dto.affiliating_body || "Biju Patnaik University of Technology (BPUT), Odisha",
       date_of_admission: dto.date_of_admission,
       date_of_leaving: dto.date_of_leaving,
       branch_name: branchName,
