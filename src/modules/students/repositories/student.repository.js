@@ -307,6 +307,16 @@ class StudentRepository {
   }
 
   async deleteStudent(studentId) {
+    // Delete dependent records to avoid foreign key constraint violations
+    await supabaseAdmin.from("student_parents").delete().eq("student_id", studentId);
+    await supabaseAdmin.from("student_addresses").delete().eq("student_id", studentId);
+    await supabaseAdmin.from("student_documents").delete().eq("student_id", studentId);
+    await supabaseAdmin.from("student_department_transfers").delete().eq("student_id", studentId);
+    await supabaseAdmin.from("operations_attendance").delete().eq("student_id", studentId);
+    await supabaseAdmin.from("exam_marks").delete().eq("student_id", studentId);
+    await supabaseAdmin.from("exam_results").delete().eq("student_id", studentId);
+    await supabaseAdmin.from("clc_certificates").delete().eq("student_id", studentId);
+
     const { error } = await supabaseAdmin
       .from("students")
       .delete()

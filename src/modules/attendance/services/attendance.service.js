@@ -5,6 +5,7 @@ import studentRepository from "../../students/repositories/student.repository.js
 import attendanceRepository from "../repositories/attendance.repository.js";
 import hrRepository from "../../hr/repositories/hr.repository.js";
 import rbacService from "../../rbac/services/rbac.service.js";
+import { supabaseAdmin } from "../../../config/supabase.js";
 
 class AttendanceService {
   async createAttendance(dto) {
@@ -186,50 +187,65 @@ class AttendanceService {
       studentIds, subject_id, monthStr
     );
 
+    const { data: studentsInfo } = await supabaseAdmin
+      .from("students")
+      .select("id, program_id, department_id, batch_id, semester_id")
+      .in("id", studentIds);
+
+    const studentInfoMap = new Map();
+    if (studentsInfo) {
+      for (const s of studentsInfo) {
+        studentInfoMap.set(s.id, s);
+      }
+    }
+
     const existingMap = new Map();
     for (const record of existingAttendances) {
       existingMap.set(record.studentId, record);
     }
 
-    const recordsToUpsert = [];
+    const results = await Promise.all(
+      students.map(async ({ student_id, status }) => {
+        let attendance = existingMap.get(student_id);
+        const sInfo = studentInfoMap.get(student_id) || {};
 
-    for (const { student_id, status } of students) {
-      let attendance = existingMap.get(student_id);
+        const recordBatchId = batch_id || sInfo.batch_id || metadata.batch_id;
+        const recordProgramId = attendance?.programId || sInfo.program_id || metadata.program_id;
+        const recordDepartmentId = attendance?.departmentId || sInfo.department_id || metadata.department_id;
+        const recordSemesterId = attendance?.semesterId || sInfo.semester_id || metadata.semester_id;
 
-      if (attendance) {
-        let dataArray = attendance.attendanceData.split(",");
+        let dataArray;
+        if (attendance && attendance.attendanceData) {
+          dataArray = attendance.attendanceData.split(",");
+        } else {
+          dataArray = Array(31).fill("-");
+        }
+
         while (dataArray.length < 31) dataArray.push("-");
         dataArray[dayIndex] = status;
-        const updatedData = dataArray.join(",");
+        const finalData = dataArray.slice(0, 31).join(",");
 
-        recordsToUpsert.push({
-          id: attendance.id,
+        const recordPayload = {
           student_id,
           subject_id,
           month: monthStr,
-          attendance_data: updatedData,
-          batch_id: batch_id || metadata.batch_id,
-          ...metadata,
-        });
-      } else {
-        let dataArray = Array(31).fill("-");
-        dataArray[dayIndex] = status;
-        const newData = dataArray.join(",");
+          attendance_data: finalData,
+        };
 
-        recordsToUpsert.push({
-          student_id,
-          subject_id,
-          month: monthStr,
-          attendance_data: newData,
-          batch_id: batch_id || metadata.batch_id,
-          ...metadata,
-        });
-      }
-    }
+        if (recordBatchId) recordPayload.batch_id = recordBatchId;
+        if (recordProgramId) recordPayload.program_id = recordProgramId;
+        if (recordDepartmentId) recordPayload.department_id = recordDepartmentId;
+        if (recordSemesterId) recordPayload.semester_id = recordSemesterId;
 
-    return recordsToUpsert.length > 0 
-      ? await attendanceRepository.upsertAttendances(recordsToUpsert) 
-      : [];
+        if (attendance?.id) {
+          return await attendanceRepository.updateAttendance(attendance.id, recordPayload);
+        } else {
+          return await attendanceRepository.createAttendance(recordPayload);
+        }
+      })
+    );
+
+    return results;
   }
 
   async getFacultyAssignments(email) {
