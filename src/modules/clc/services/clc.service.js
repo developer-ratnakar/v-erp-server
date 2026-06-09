@@ -48,7 +48,7 @@ class CLCService {
     const yearSuffix = new Date(dto.date_of_leaving).getFullYear().toString().slice(-2);
     const uniqueSuffix = Date.now().toString().slice(-6);
 
-    return await clcRepository.createCertificate({
+    const certificate = await clcRepository.createCertificate({
       student_id: dto.student_id,
       certificate_no: dto.certificate_no || `CLC-${uniqueSuffix}`,
       serial_no: dto.serial_no || `${registrationNumber}/${yearSuffix}`,
@@ -74,10 +74,33 @@ class CLCService {
       verified_by_staff_id: dto.verified_by_staff_id,
       remarks: dto.remarks,
     });
+    return await this.enrichCertificate(certificate);
+  }
+
+  async enrichCertificate(cert) {
+    if (!cert) return null;
+    try {
+      const student = await studentRepository.findStudentById(cert.studentId);
+      if (student) {
+        const [parent, program] = await Promise.all([
+          studentRepository.getStudentParent(cert.studentId),
+          student.programId ? academicRepository.findProgramById(student.programId) : null
+        ]);
+        cert.motherName = parent?.motherName || null;
+        cert.courseName = program?.name || null;
+      }
+    } catch (err) {
+      console.error("Error enriching CLC certificate:", err);
+    }
+    return cert;
   }
 
   async getAllCertificates(pagination) {
-    return await clcRepository.getAllCertificates(pagination);
+    const result = await clcRepository.getAllCertificates(pagination);
+    if (result && result.data) {
+      await Promise.all(result.data.map((cert) => this.enrichCertificate(cert)));
+    }
+    return result;
   }
 
   async getCertificateById(certificateId) {
@@ -87,7 +110,7 @@ class CLCService {
       throw new ApiError(404, "CLC certificate not found");
     }
 
-    return certificate;
+    return await this.enrichCertificate(certificate);
   }
 
   async updateCertificate(certificateId, dto) {
@@ -103,7 +126,8 @@ class CLCService {
       if (!staff) throw new ApiError(404, "Verified-by staff not found");
     }
 
-    return await clcRepository.updateCertificate(certificateId, dto);
+    const updated = await clcRepository.updateCertificate(certificateId, dto);
+    return await this.enrichCertificate(updated);
   }
 
   async deleteCertificate(certificateId) {
@@ -118,7 +142,11 @@ class CLCService {
       throw new ApiError(404, "Student not found");
     }
 
-    return await clcRepository.getCertificatesByStudentId(studentId);
+    const certificates = await clcRepository.getCertificatesByStudentId(studentId);
+    if (certificates) {
+      await Promise.all(certificates.map((cert) => this.enrichCertificate(cert)));
+    }
+    return certificates;
   }
 
   formatAddress(address) {

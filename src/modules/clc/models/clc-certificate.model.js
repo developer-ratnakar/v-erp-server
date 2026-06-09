@@ -26,6 +26,10 @@ class CLCCertificate {
     remarks,
     created_at,
     updated_at,
+    motherName,
+    mother_name,
+    courseName,
+    course_name,
   }) {
     this.id = id;
     this.studentId = student_id;
@@ -53,6 +57,8 @@ class CLCCertificate {
     this.remarks = remarks;
     this.createdAt = created_at;
     this.updatedAt = updated_at;
+    this.motherName = motherName || mother_name || null;
+    this.courseName = courseName || course_name || null;
   }
 }
 
